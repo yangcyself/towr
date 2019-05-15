@@ -64,6 +64,21 @@ Block::GetHeightDerivWrtX (double x, double y) const
   return dhdx;
 }
 
+//HalfBlock
+
+double
+HalfBlock::GetHeight (double x, double y) const
+{
+  double h = 0.0;
+
+  // very steep ramp leading up to block
+  if (x>=step_start_x && x <= step_start_x+step_width_x && y>=step_start_y && y <= step_start_y+step_width_y)
+    h = height_;
+  
+  return h;
+
+}
+
 
 // STAIRS
 double
@@ -77,7 +92,10 @@ Stairs::GetHeight (double x, double y) const
   if (x>=first_step_start_+first_step_width_)
     h = height_second_step;
 
-  if (x>=first_step_start_+first_step_width_+width_top)
+  if (x>=first_step_start_+first_step_width_+second_step_width_)
+    h = height_third_step;
+
+  if (x>=first_step_start_+first_step_width_+second_step_width_+width_top)
     h = 0.0;
 
   return h;

@@ -68,6 +68,26 @@ private:
   const double slope_ = height_/eps_;
 };
 
+
+/**
+ * @brief Sample terrain with a step in height in x-direction.
+ */
+class HalfBlock : public HeightMap {
+public:
+  double GetHeight(double x, double y)  const override;
+  //double GetHeightDerivWrtY(double x, double y) const override;
+  
+private:
+  double step_start_x = 0.7;
+  double step_width_x     = 2;
+  double step_start_y = 0;
+  double step_width_y     = 1;
+  double height_     = -100; // [m]
+
+};
+
+
+
 /**
  * @brief Sample terrain with a two-steps in height in x-direction.
  */
@@ -77,9 +97,11 @@ public:
 
 private:
   double first_step_start_  = 1.0;
-  double first_step_width_  = 0.4;
+  double first_step_width_  = 0.2;
+  double second_step_width_  = 0.2;
   double height_first_step  = 0.2;
   double height_second_step = 0.4;
+  double height_third_step = 0.6;
   double width_top = 1.0;
 };
 
