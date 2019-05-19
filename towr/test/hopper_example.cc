@@ -48,6 +48,7 @@ int main()
 
   // terrain
   formulation.terrain_ = std::make_shared<FlatGround>(0.0);
+  //formulation.terrain_ = std::make_shared<HalfBlock>();
 
   // Kinematic limits and dynamic parameters of the hopper
   formulation.model_ = RobotModel(RobotModel::Monoped);
@@ -57,7 +58,7 @@ int main()
   formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
 
   // define the desired goal state of the hopper
-  formulation.final_base_.lin.at(towr::kPos) << 1.0, 0.0, 0.5;
+  formulation.final_base_.lin.at(towr::kPos) << 1.0, 0.4, 0.5;
 
   // Parameters that define the motion. See c'tor for default values or
   // other values that can be modified.
@@ -86,7 +87,7 @@ int main()
   // solver->SetOption("derivative_test", "first-order");
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
-  solver->SetOption("max_cpu_time", 20.0);
+  solver->SetOption("max_cpu_time", 300.0);
   solver->Solve(nlp);
 
   // Can directly view the optimization variables through:
