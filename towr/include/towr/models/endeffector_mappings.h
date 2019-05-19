@@ -42,7 +42,7 @@ namespace towr {
 // has to start at zero
 enum BipedIDs { L, R };
 enum QuadrupedIDs { LF, RF, LH, RH };
-enum HexapedIDs { LF, LM,LH, RF, RM, RH };
+enum HexapedIDs { LA, LB,LC, RA, RB, RC };
 
 } // namespace towr
 

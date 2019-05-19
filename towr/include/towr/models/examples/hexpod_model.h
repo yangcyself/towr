@@ -49,12 +49,12 @@ public:
     const double y_nominal_2 = 0.609;
     const double z_nominal = -0.446;
 
-    nominal_stance_.at(LF) <<  x_nominal_1,   y_nominal_1, z_nominal;
-    nominal_stance_.at(LM) <<  x_nominal_2,   y_nominal_2, z_nominal;
-    nominal_stance_.at(LH) << -x_nominal_1,   y_nominal_1, z_nominal;
-    nominal_stance_.at(RF) <<  x_nominal_1,  -y_nominal_1, z_nominal;
-    nominal_stance_.at(LH) <<  x_nominal_2,  -y_nominal_2, z_nominal;
-    nominal_stance_.at(RH) << -x_nominal_1,  -y_nominal_1, z_nominal;
+    nominal_stance_.at(LA) <<  x_nominal_1,   y_nominal_1, z_nominal;
+    nominal_stance_.at(LB) <<  x_nominal_2,   y_nominal_2, z_nominal;
+    nominal_stance_.at(LC) << -x_nominal_1,   y_nominal_1, z_nominal;
+    nominal_stance_.at(RA) <<  x_nominal_1,  -y_nominal_1, z_nominal;
+    nominal_stance_.at(RB) <<  x_nominal_2,  -y_nominal_2, z_nominal;
+    nominal_stance_.at(RC) << -x_nominal_1,  -y_nominal_1, z_nominal;
 
     max_dev_from_nominal_ << 0.15, 0.1, 0.10;
   }
