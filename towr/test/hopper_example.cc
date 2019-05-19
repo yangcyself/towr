@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <towr/terrain/examples/height_map_examples.h>
 #include <towr/nlp_formulation.h>
+#include <towr/initialization/gait_generator.h>
 #include <ifopt/ipopt_solver.h>
 
 
@@ -51,7 +52,8 @@ int main()
   //formulation.terrain_ = std::make_shared<HalfBlock>();
 
   // Kinematic limits and dynamic parameters of the hopper
-  formulation.model_ = RobotModel(RobotModel::Monoped);
+  // formulation.model_ = RobotModel(RobotModel::Monoped);
+  formulation.model_ = RobotModel(RobotModel::Hexaped);
 
   // set the initial position of the hopper
   formulation.initial_base_.lin.at(kPos).z() = 0.5;
@@ -65,9 +67,15 @@ int main()
   // First we define the initial phase durations, that can however be changed
   // by the optimizer. The number of swing and stance phases however is fixed.
   // alternating stance and swing:     ____-----_____-----_____-----_____
-  formulation.params_.ee_phase_durations_.push_back({0.4, 0.2, 0.4, 0.2, 0.4, 0.2, 0.2});
-  formulation.params_.ee_in_contact_at_start_.push_back(true);
+  // formulation.params_.ee_phase_durations_.push_back({0.4, 0.2, 0.4, 0.2, 0.4, 0.2, 0.2});
+  auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
 
+  gait_gen_->SetCombo(C0);
+  double total_duration = 2;
+  for (int ee=0; ee<n_ee; ++ee) {
+    formulation.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
+    formulation.params_.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
+  }
   // Initialize the nonlinear-programming problem with the variables,
   // constraints and costs.
   ifopt::Problem nlp;
