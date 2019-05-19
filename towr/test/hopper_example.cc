@@ -57,7 +57,9 @@ int main()
 
   // set the initial position of the hopper
   formulation.initial_base_.lin.at(kPos).z() = 0.5;
-  formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
+  //formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
+  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+  formulation.initial_ee_W_ = nominal_stance_B;
 
   // define the desired goal state of the hopper
   formulation.final_base_.lin.at(towr::kPos) << 1.0, 0.4, 0.5;
