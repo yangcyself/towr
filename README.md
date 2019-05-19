@@ -1,3 +1,7 @@
+# Blue_Towr
+This fork of Towr aims to add some functionalities to work with little_blue_hexpod and to work in real envionment and real time
+
+# Original README
 <img align="right" src="https://i.imgur.com/qI1Jfyl.gif" width="55%"/>
 
 [<img src="https://i.imgur.com/qliQVx1.png" />](https://awinkler.github.io/publications/mypdfs/18-ral-winkler.pdf "Open RA-L paper")
