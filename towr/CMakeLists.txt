@@ -8,8 +8,9 @@ find_package(ifopt 2.0.1 REQUIRED)
 ###########
 ## Build ##
 ###########
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg")
-SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# #####uncomment this two lines when to profile with gprof###
+# SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg")
+# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 IF(NOT CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "CMAKE_BUILD_TYPE not set to Release -> impacts performance")

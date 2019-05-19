@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2018, Alexander W. Winkler. All rights reserved.
+Copyright (c) 2018, Yang Chenyu  Tian Changda. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -27,47 +27,50 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <towr/models/robot_model.h>
+#ifndef TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_HEXPOD_MODEL_H_
+#define TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_HEXPOD_MODEL_H_
 
-#include <towr/models/examples/monoped_model.h>
-#include <towr/models/examples/biped_model.h>
-#include <towr/models/examples/hyq_model.h>
-#include <towr/models/examples/anymal_model.h>
-#include <towr/models/examples/hexpod_model.h>
+#include <towr/models/kinematic_model.h>
+#include <towr/models/single_rigid_body_dynamics.h>
+#include <towr/models/endeffector_mappings.h>
 
 namespace towr {
 
+/**
+ * @brief The Kinematics of the quadruped robot ANYmal.
+ */
+class HexpodKinematicModel : public KinematicModel {
+public:
+  HexpodKinematicModel () : KinematicModel(6)
+  {
+    const double x_nominal_1 = 0.528;
+    const double x_nominal_2 = 0;
+    const double y_nominal_1 = 0.304;
+    const double y_nominal_2 = 0.609;
+    const double z_nominal = -0.446;
 
-RobotModel::RobotModel(Robot robot)
-{
-  switch (robot) {
-    case Monoped:
-      dynamic_model_   = std::make_shared<MonopedDynamicModel>();
-      kinematic_model_ = std::make_shared<MonopedKinematicModel>();
-      break;
-    case Biped:
-      dynamic_model_   = std::make_shared<BipedDynamicModel>();
-      kinematic_model_ = std::make_shared<BipedKinematicModel>();
-      break;
-    case Hyq:
-      dynamic_model_   = std::make_shared<HyqDynamicModel>();
-      kinematic_model_ = std::make_shared<HyqKinematicModel>();
-      break;
-    case Anymal:
-      dynamic_model_   = std::make_shared<AnymalDynamicModel>();
-      kinematic_model_ = std::make_shared<AnymalKinematicModel>();
-      break;
-    case Hexpod:
-      dynamic_model_   = std::make_shared<HexpodDynamicModel>();
-      kinematic_model_ = std::make_shared<HexpodKinematicModel>();
-      break;
-    default:
-      assert(false); // Error: Robot model not implemented.
-      break;
+    nominal_stance_.at(LF) <<  x_nominal_1,   y_nominal_1, z_nominal;
+    nominal_stance_.at(LM) <<  x_nominal_2,   y_nominal_2, z_nominal;
+    nominal_stance_.at(LH) << -x_nominal_1,   y_nominal_1, z_nominal;
+    nominal_stance_.at(RF) <<  x_nominal_1,  -y_nominal_1, z_nominal;
+    nominal_stance_.at(LH) <<  x_nominal_2,  -y_nominal_2, z_nominal;
+    nominal_stance_.at(RH) << -x_nominal_1,  -y_nominal_1, z_nominal;
+
+    max_dev_from_nominal_ << 0.15, 0.1, 0.10;
   }
-}
+};
 
+/**
+ * @brief The Dynamics of the quadruped robot ANYmal.
+ */
+class HexpodDynamicModel : public SingleRigidBodyDynamics {
+public:
+  HexpodDynamicModel()
+  : SingleRigidBodyDynamics(29.5,
+                    0.946438, 1.94478, 2.01835, 0.000938112, -0.00595386, -0.00146328,
+                    6) {}
+};
 
 } // namespace towr
 
-
+#endif /* TOWR_TOWR_ROS_INCLUDE_TOWR_ROS_HEXPOD_MODEL_H_ */
