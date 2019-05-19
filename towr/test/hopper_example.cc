@@ -53,7 +53,7 @@ int main()
 
   // Kinematic limits and dynamic parameters of the hopper
   // formulation.model_ = RobotModel(RobotModel::Monoped);
-  formulation.model_ = RobotModel(RobotModel::Hexaped);
+  formulation.model_ = RobotModel(RobotModel::Hexpod);
 
   // set the initial position of the hopper
   formulation.initial_base_.lin.at(kPos).z() = 0.5;
@@ -68,9 +68,10 @@ int main()
   // by the optimizer. The number of swing and stance phases however is fixed.
   // alternating stance and swing:     ____-----_____-----_____-----_____
   // formulation.params_.ee_phase_durations_.push_back({0.4, 0.2, 0.4, 0.2, 0.4, 0.2, 0.2});
+  int n_ee=6;
   auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
 
-  gait_gen_->SetCombo(C0);
+  gait_gen_->SetCombo(towr::GaitGenerator::C0);
   double total_duration = 2;
   for (int ee=0; ee<n_ee; ++ee) {
     formulation.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
