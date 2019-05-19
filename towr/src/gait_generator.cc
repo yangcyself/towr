@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <towr/initialization/monoped_gait_generator.h>
 #include <towr/initialization/biped_gait_generator.h>
 #include <towr/initialization/quadruped_gait_generator.h>
+#include <towr/initialization/hexaped_gait_generator.h>
 
 namespace towr {
 
@@ -47,6 +48,7 @@ GaitGenerator::MakeGaitGenerator(int leg_count)
     case 1: return std::make_shared<MonopedGaitGenerator>();   break;
     case 2: return std::make_shared<BipedGaitGenerator>();     break;
     case 4: return std::make_shared<QuadrupedGaitGenerator>(); break;
+    case 6: return std::make_shared<HexapedGaitGenerator>(); break;
     default: assert(false); break; // Error: Not implemented
   }
 }
