@@ -55,14 +55,16 @@ int main()
   // formulation.model_ = RobotModel(RobotModel::Monoped);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
 
+  double robot_z = 0.45; // hexpod
+  //double robot_z = 0.5; // hopper
   // set the initial position of the hopper
-  formulation.initial_base_.lin.at(kPos).z() = 0.5;
+  formulation.initial_base_.lin.at(kPos).z() = robot_z;
   //formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
   auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
   formulation.initial_ee_W_ = nominal_stance_B;
 
   // define the desired goal state of the hopper
-  formulation.final_base_.lin.at(towr::kPos) << 1.0, 0.4, 0.5;
+  formulation.final_base_.lin.at(towr::kPos) << 1.3, 0, robot_z;
 
   // Parameters that define the motion. See c'tor for default values or
   // other values that can be modified.
@@ -98,7 +100,7 @@ int main()
   // solver->SetOption("derivative_test", "first-order");
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
-  solver->SetOption("max_cpu_time", 300.0);
+  solver->SetOption("max_cpu_time", 60.0);
   solver->Solve(nlp);
 
   // Can directly view the optimization variables through:
