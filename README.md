@@ -12,6 +12,9 @@ This fork of Towr aims to add some functionalities to work with little_blue_hexp
 8. gait_generator.cc 
 9. 增加hexaped_gait_generator.cc /h
 10. CMakeList
+11. towr_ros/include/towr_ros/towr_xpp_ee_map.h
+    1.  增加了hexa_to_xpp_id (暂时使用的四足的xpp id)
+    2.  hexa_to_name
 # Original README
 <img align="right" src="https://i.imgur.com/qI1Jfyl.gif" width="55%"/>
 
