@@ -1,6 +1,17 @@
 # Blue_Towr
 This fork of Towr aims to add some functionalities to work with little_blue_hexpod and to work in real envionment and real time
 
+添加的地方：
+1. robot_model.h
+2. robot_model.cc
+3. towrCommand.msg （没有啥用的啦）
+4. 新增两个文件 hexpod_model.h 
+5. 要增加对应的EEPos nominal_stance_
+6. endeffector_mappings.h 增加六个脚的enum（按照vrep里面布局的convention
+7. xpp_towr.rviz (未完成)
+8. gait_generator.cc 
+9. 增加hexaped_gait_generator.cc /h
+10. CMakeList
 # Original README
 <img align="right" src="https://i.imgur.com/qI1Jfyl.gif" width="55%"/>
 
