@@ -56,8 +56,8 @@ public:
     nominal_stance_.at(RB) <<  x_nominal_2,  -y_nominal_2, z_nominal;
     nominal_stance_.at(RC) << -x_nominal_1,  -y_nominal_1, z_nominal;
 
-    // max_dev_from_nominal_ << 0.15, 0.1, 0.10;
-    max_dev_from_nominal_ << 0.2, 0.2, 0.2;
+    max_dev_from_nominal_ << 0.15, 0.1, 0.10;
+    // max_dev_from_nominal_ << 0.2, 0.2, 0.2;
   }
 };
 
