@@ -52,11 +52,12 @@ int main()
   //formulation.terrain_ = std::make_shared<HalfBlock>();
 
   // Kinematic limits and dynamic parameters of the hopper
-  // formulation.model_ = RobotModel(RobotModel::Monoped);
-  formulation.model_ = RobotModel(RobotModel::Hexpod);
+  formulation.model_ = RobotModel(RobotModel::Monoped);
+  // formulation.model_ = RobotModel(RobotModel::Hexpod);
+  // formulation.model_ = RobotModel(RobotModel::Biped);
 
-  double robot_z = 0.45; // hexpod
-  //double robot_z = 0.5; // hopper
+  // double robot_z = 0.45; // hexpod
+  double robot_z = 0.5; // hopper
   // set the initial position of the hopper
   formulation.initial_base_.lin.at(kPos).z() = robot_z;
   //formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
@@ -72,7 +73,7 @@ int main()
   // by the optimizer. The number of swing and stance phases however is fixed.
   // alternating stance and swing:     ____-----_____-----_____-----_____
   // formulation.params_.ee_phase_durations_.push_back({0.4, 0.2, 0.4, 0.2, 0.4, 0.2, 0.2});
-  int n_ee=6;
+  int n_ee=1;
   auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
 
   gait_gen_->SetCombo(towr::GaitGenerator::C0);
