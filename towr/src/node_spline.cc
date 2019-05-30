@@ -63,8 +63,8 @@ NodeSpline::Jacobian
 NodeSpline::GetJacobianWrtNodes (double t_global, Dx dxdt) const
 {
   int id; double t_local;
-  std::tie(id, t_local) = GetLocalTime(t_global, GetPolyDurations());
-
+  std::tie(id, t_local) = GetLocalTime(t_global, GetPolyDurations()); //looks like std::tie enables variable assignment at the same time
+  //id is the number of the time segment(时间的第几段),t_local is the local tie in that segment
   return GetJacobianWrtNodes(id, t_local, dxdt);
 }
 

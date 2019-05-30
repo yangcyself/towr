@@ -63,7 +63,7 @@ RangeOfMotionConstraint::UpdateConstraintAtInstance (double t, int k, VectorXd& 
   EulerConverter::MatrixSXd b_R_w = base_angular_.GetRotationMatrixBaseToWorld(t).transpose();
 
   Vector3d vector_base_to_ee_W = pos_ee_W - base_W;
-  Vector3d vector_base_to_ee_B = b_R_w*(vector_base_to_ee_W);
+  Vector3d vector_base_to_ee_B = b_R_w*(vector_base_to_ee_W); //get the ee pos in the base coordinate
 
   g.middleRows(GetRow(k, X), k3D) = vector_base_to_ee_B;
 }
