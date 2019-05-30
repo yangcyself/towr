@@ -75,19 +75,19 @@ public:
                                 x_position_4 , y_position_5  ,z_position_0,
                                 -x_position_4  , y_position_5  ,z_position_0;
 
-    root_positions.at(LC) <<  -x_position_1, y_position_1,0
+    root_positions.at(LC) <<  -x_position_1, y_position_1,0,
                                -x_position_3 ,y_position_3  ,z_position_0,
                                -x_position_2, y_position_2  ,z_position_0;
 
-    root_positions.at(RA) <<  x_position_1, -y_position_1  ,0
+    root_positions.at(RA) <<  x_position_1, -y_position_1  ,0,
                                x_position_3, -y_position_3 ,z_position_0,
                                x_position_2, -y_position_2 ,z_position_0;
 
-    root_positions.at(RB) <<  0, -y_position_4  ,0
+    root_positions.at(RB) <<  0, -y_position_4  ,0,
                               -x_position_4, -y_position_5   ,z_position_0,
                               x_position_4, -y_position_5  ,z_position_0;
 
-    root_positions.at(RC) << -x_position_1, -y_position_1     ,0
+    root_positions.at(RC) << -x_position_1, -y_position_1     ,0,
                               -x_position_2, -y_position_2 ,z_position_0,
                               -x_position_3, y_position_3  ,z_position_0;
 

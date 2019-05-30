@@ -60,12 +60,12 @@ public:
     return root_positions[ee];
   }
 
-  virtual Vector3d GetMaximumLength() const
+  virtual double GetMaximumLength() const
   {
     return max_length;
   }
   
-  virtual Vector3d GetMinimumLength() const
+  virtual double GetMinimumLength() const
   {
     return min_length;
   }
