@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace towr {
 
-Parameters::Parameters (bool useElongConstraintd)
+Parameters::Parameters (bool useElongConstraint)
 {
   // constructs optimization variables
   duration_base_polynomial_ = 0.1;
