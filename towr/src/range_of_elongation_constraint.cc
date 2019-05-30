@@ -44,9 +44,10 @@ RangeOfElongationConstraint::RangeOfElongationConstraint (const KinematicModel::
   base_angular_ = EulerConverter(spline_holder.base_angular_);
   ee_motion_    = spline_holder.ee_motion_.at(ee);
 
-  max_lengths = model->GetMaximumLength();
-  min_lengths = model->GetMinimumLength();
-  ped_root_pos = model->GetRootPosition(ee); //TODO: to implement
+  ParallelKinematicModel::Ptr child_model = dynamic_cast<ParallelKinematicModel*>(model);
+  max_lengths = child_model->GetMaximumLength();
+  min_lengths = child_model->GetMinimumLength();
+  ped_root_pos = child_model->GetRootPosition(ee); //TODO: to implement
   ee_ = ee;
 
   SetRows(GetNumberOfNodes()*k3D);

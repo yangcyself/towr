@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME} SHARED
   src/total_duration_constraint.cc
   src/dynamic_constraint.cc
   src/range_of_motion_constraint.cc
+  src/range_of_elongation_constraint.cc
   src/spline_acc_constraint.cc
   src/linear_constraint.cc
   # costs
