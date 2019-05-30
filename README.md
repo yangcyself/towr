@@ -1,7 +1,36 @@
 # Blue_Towr
+
 This fork of Towr aims to add some functionalities to work with little_blue_hexpod and to work in real envionment and real time
 
-添加的地方：
+第二次修改添加的地方(加入并联电机长度约束):
+
+1. range_of_elongation_constraint.h
+   1. 这个是elongation constraint的头文件，这个类需要用到 parallel_kinematic_model
+   2. 其中需要double的max和min length, Matrix3d 的 ped_root_pos
+2. range_of_elongation_constraint.cc
+   1. 这里主要是改了jac的计算方式，由于我们的约束变量变成了距离的平方，而之前的时候boundingbox 的变量是脚到身体的向量，所以我们的jac都要乘一个2*（脚到root）
+   2. 得到数据利用model->GetMinimumLength 和 model->GetRootPosition(ee)
+3. parallel_kinematic_model.h
+   1. 是我创建的专门为了方便机器人这种并联结构的类，是KinematicModel的子类
+   2. 除了继承了前面的东西之外，实现了GetRootPosition，GetMaximumLength的接口
+4. hexpod_model.h
+   1. 把hexpod model原先是KinematicModel的子类，现在变成ParallelKinematicModel 的子类
+   2. 加入了root_positions， min_lengthmax_length 的参数定义
+5. robot_model.h 
+   1. 改了include
+   2. （后面其实应该用类的那个啥来着，就是用基类指针访问高级功能，但是忘了是啥了，后面再改
+6. towr_ros_app.cc
+   1. 整个towr_ros_app的main函数在这里面，这个文件里面又初始化应用的过程，设置参数的过程，还有提交给IPOPT的过程， TowrRosApp  是 TowrRosInterface 的子类， 在towrinterface.cpp里面有调用 这里定义的SetIpoptParameters
+   2. 在这里的设置参数的过程， 加了一个判断，如果n_ee = 6则params 的 useElongConstraint = true
+7. parameters.h 和 parameters.cc
+   1. parameters 用来选择求解的时候要用哪些约束
+   2. 在里面的ConstraintName 里面加了 EEMotorRange
+   3. parameter的初始化函数加了一个 useElongConstraint变量
+8. nlp_formulation.cc 和 nlp_formulation.h
+   1. nlp_formulation 是从model得到NLP的一个过程，调用它的逻辑在TowrRosInterface :: UserCommandCallback 里面
+   2. 在GetConstraint里面加了case EEMotorRange的情况，并且NlpFormulation :: MakeRangeOfElongationConstraint (const SplineHolder& s) const 的定义
+
+添加的地方(加入小蓝机器人)：
 1. robot_model.h
 2. robot_model.cc
 3. towrCommand.msg （没有啥用的啦）
@@ -83,7 +112,7 @@ In case these don't yet exist for your distro, there are two ways to build this 
   ```bash
   ./towr-example # or ./towr-test if gtest was found
   ```
- 
+
 * Use: You can easily customize and add your own constraints and variables to the optimization problem.
   Herefore, add the following to your *CMakeLists.txt*:
   ```cmake
@@ -131,9 +160,9 @@ We provide a [ROS]-wrapper for the pure cmake towr library, which adds a keyboar
   roslaunch towr_ros towr_ros.launch  # debug:=true  (to debug with gdb)
   ```
   Click in the xterm terminal and hit 'o'. 
-  
+
   Information about how to tune the paramters can be found [here](http://docs.ros.org/api/towr/html/group__Parameters.html). 
-  
+
 ## Develop
 #### Library overview
  * The relevant classes and parameters to build on are collected [modules](http://docs.ros.org/api/towr/html/modules.html).
@@ -143,9 +172,9 @@ We provide a [ROS]-wrapper for the pure cmake towr library, which adds a keyboar
 #### Problem formulation
  * This code formulates the variables, costs and constraints using ifopt, so it makes sense to briefly familiarize with the syntax using [this example].
  * A minimal towr example without ROS, formulating a problem for a one-legged hopper, 
-  can be seen [here](towr/test/hopper_example.cc) and is great starting point.
+    can be seen [here](towr/test/hopper_example.cc) and is great starting point.
  * We recommend using the ROS infrastructure provided to dynamically visualize, plot and change the problem formulation. To define your own problem using this infrastructure, use this [example](towr_ros/src/towr_ros_app.cc) as a guide. 
- 
+
 #### Add your own variables, costs and constraints
  * This library provides a set of variables, costs and constraints to formulate the trajectory optimization problem. An [example formulation](towr/include/towr/nlp_formulation.h) of how to combine these is given, however, this formulation can probably be improved. To add your own e.g. constraint-set, define a class with it's values and derivatives, and then add it to the formulation ```nlp.AddConstraintSet(your_custom_constraints);``` as shown [here](towr/test/hopper_example.cc).
 
@@ -162,7 +191,7 @@ See here the list of [contributors](https://github.com/ethz-adrl/towr/graphs/con
 ## Publications
 All publications underlying this code can be found [here](https://www.alex-winkler.com). 
 The core paper is:
- 
+
     @article{winkler18,
       author    = {Winkler, Alexander W and Bellicoso, Dario C and 
                    Hutter, Marco and Buchli, Jonas},
@@ -175,7 +204,7 @@ The core paper is:
       volume    = {3},
       doi       = {10.1109/LRA.2018.2798285},
     }
-    
+
 A broader overview of the topic of Trajectory optimization and derivation of 
 the Single-Rigid-Body Dynamics model used in this work: 
 [DOI 10.3929/ethz-b-000272432](https://doi.org/10.3929/ethz-b-000272432)  
@@ -194,7 +223,7 @@ The work was carried out at the following institutions:
 [std_msgs]: http://wiki.ros.org/std_msgs
 [roscpp]: http://wiki.ros.org/roscpp
 [message_generation]: http://wiki.ros.org/message_generation
-[rosbag]: http://wiki.ros.org/rosbag 
+[rosbag]: http://wiki.ros.org/rosbag
 [HyQ]: https://www.iit.it/research/lines/dynamic-legged-systems
 [ANYmal]: http://www.rsl.ethz.ch/robots-media/anymal.html
 [ROS]: http://www.ros.org
