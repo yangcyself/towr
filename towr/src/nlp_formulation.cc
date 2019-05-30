@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <towr/constraints/dynamic_constraint.h>
 #include <towr/constraints/force_constraint.h>
 #include <towr/constraints/range_of_motion_constraint.h>
+#include <towr/constraints/range_of_elongation_constraint.h>
 #include <towr/constraints/swing_constraint.h>
 #include <towr/constraints/terrain_constraint.h>
 #include <towr/constraints/total_duration_constraint.h>
@@ -215,6 +216,7 @@ NlpFormulation::GetConstraint (Parameters::ConstraintName name,
   switch (name) {
     case Parameters::Dynamic:        return MakeDynamicConstraint(s);
     case Parameters::EndeffectorRom: return MakeRangeOfMotionBoxConstraint(s);
+    case Parameters::EEMotorRange:   return MakeRangeOfElongationConstraint(s);
     case Parameters::BaseRom:        return MakeBaseRangeOfMotionConstraint(s);
     case Parameters::TotalTime:      return MakeTotalTimeConstraint();
     case Parameters::Terrain:        return MakeTerrainConstraint();
@@ -251,6 +253,23 @@ NlpFormulation::MakeRangeOfMotionBoxConstraint (const SplineHolder& s) const
 
   for (int ee=0; ee<params_.GetEECount(); ee++) {
     auto rom = std::make_shared<RangeOfMotionConstraint>(model_.kinematic_model_,
+                                                         params_.GetTotalTime(),
+                                                         params_.dt_constraint_range_of_motion_,
+                                                         ee,
+                                                         s);
+    c.push_back(rom);
+  }
+
+  return c;
+}
+
+NlpFormulation::ContraintPtrVec
+NlpFormulation::MakeRangeOfElongationConstraint (const SplineHolder& s) const
+{
+  ContraintPtrVec c;
+
+  for (int ee=0; ee<params_.GetEECount(); ee++) {
+    auto rom = std::make_shared<RangeOfElongationConstraint>(model_.kinematic_model_,
                                                          params_.GetTotalTime(),
                                                          params_.dt_constraint_range_of_motion_,
                                                          ee,

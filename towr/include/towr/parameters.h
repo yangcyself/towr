@@ -138,6 +138,7 @@ public:
    */
   enum ConstraintName { Dynamic,        ///< sets DynamicConstraint
                         EndeffectorRom, ///< sets RangeOfMotionConstraint
+                        EEMotorRange,//< sets RangeOfElongationConstraint
                         TotalTime,      ///< sets TotalDurationConstraint
                         Terrain,        ///< sets TerrainConstraint
                         Force,          ///< sets ForceConstraint
@@ -161,7 +162,7 @@ public:
   /**
    * @brief Default parameters to get started.
    */
-  Parameters();
+  Parameters(bool useElongConstraint = false);
   virtual ~Parameters() = default;
 
   /// Number and initial duration of each foot's swing and stance phases.

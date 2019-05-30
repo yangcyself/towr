@@ -39,16 +39,25 @@ namespace towr {
 /**
  * @brief The Kinematics of the quadruped robot ANYmal.
  */
-class HexpodKinematicModel : public KinematicModel {
+class HexpodKinematicModel : public ParallelKinematicModel {
 public:
-  HexpodKinematicModel () : KinematicModel(6)
+  HexpodKinematicModel () : ParallelKinematicModel(6)
   {
     const double x_nominal_1 = 0.528;
     const double x_nominal_2 = 0;
     const double y_nominal_1 = 0.304;
     const double y_nominal_2 = 0.609;
     const double z_nominal = -0.45;
-
+    const double x_position_1 = 0.131;
+    const double x_position_2 = 0.274;
+    const double x_position_3 = 0.182;
+    const double x_position_4 = 0.092;
+    const double y_position_1 = 0.076;
+    const double y_position_2 = 0.052;
+    const double y_position_3 = 0.211;
+    const double y_position_4 = 0.152;
+    const double y_position_5 = 0.264;
+    const double z_position_0 = 0.117;
     nominal_stance_.at(LA) <<  x_nominal_1,   y_nominal_1, z_nominal;
     nominal_stance_.at(LB) <<  x_nominal_2,   y_nominal_2, z_nominal;
     nominal_stance_.at(LC) << -x_nominal_1,   y_nominal_1, z_nominal;
@@ -57,7 +66,34 @@ public:
     nominal_stance_.at(RC) << -x_nominal_1,  -y_nominal_1, z_nominal;
 
     max_dev_from_nominal_ << 0.15, 0.1, 0.10;
-    // max_dev_from_nominal_ << 0.2, 0.2, 0.2;
+
+    root_positions.at(LA) <<  x_position_1, y_position_1  ,0,
+                              x_position_2, y_position_2  ,z_position_0,
+                              x_position_3, y_position_3  ,z_position_0;
+
+    root_positions.at(LB) <<  0,  y_position_4 ,0,
+                                x_position_4 , y_position_5  ,z_position_0,
+                                -x_position_4  , y_position_5  ,z_position_0;
+
+    root_positions.at(LC) <<  -x_position_1, y_position_1,0
+                               -x_position_3 ,y_position_3  ,z_position_0,
+                               -x_position_2, y_position_2  ,z_position_0;
+
+    root_positions.at(RA) <<  x_position_1, -y_position_1  ,0
+                               x_position_3, -y_position_3 ,z_position_0,
+                               x_position_2, -y_position_2 ,z_position_0;
+
+    root_positions.at(RB) <<  0, -y_position_4  ,0
+                              -x_position_4, -y_position_5   ,z_position_0,
+                              x_position_4, -y_position_5  ,z_position_0;
+
+    root_positions.at(RC) << -x_position_1, -y_position_1     ,0
+                              -x_position_2, -y_position_2 ,z_position_0,
+                              -x_position_3, y_position_3  ,z_position_0;
+
+    min_length = 0.01; // note here is the square of the length
+    max_length = 0.02;
+    max_dev_from_nominal_ << 0.2, 0.2, 0.2;
   }
 };
 

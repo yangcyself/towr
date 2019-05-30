@@ -62,7 +62,10 @@ public:
    */
   Parameters GetTowrParameters(int n_ee, const TowrCommandMsg& msg) const override
   {
-    Parameters params;
+    bool useElongConstraint = false;
+    if(n_ee ==6) // use the hexpod
+      useElongConstraint = true;
+    Parameters params(useElongConstraint);
 
     // Instead of manually defining the initial durations for each foot and
     // step, for convenience we use a GaitGenerator with some predefined gaits

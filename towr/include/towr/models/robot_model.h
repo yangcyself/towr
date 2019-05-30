@@ -34,7 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #include <towr/models/dynamic_model.h>
-#include <towr/models/kinematic_model.h>
+// #include <towr/models/kinematic_model.h>
+#include <towr/models/parallel_kinematic_model.h>
+
 
 namespace towr {
 
