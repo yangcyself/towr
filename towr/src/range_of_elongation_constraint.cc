@@ -44,7 +44,10 @@ RangeOfElongationConstraint::RangeOfElongationConstraint (const KinematicModel::
   base_angular_ = EulerConverter(spline_holder.base_angular_);
   ee_motion_    = spline_holder.ee_motion_.at(ee);
 
-  ParallelKinematicModel::Ptr child_model = dynamic_cast<ParallelKinematicModel*>(model);
+  std::shared_ptr<KinematicModel> model_ = model;
+  // ParallelKinematicModel::Ptr  
+  std::shared_ptr<ParallelKinematicModel> child_model = std::dynamic_pointer_cast<ParallelKinematicModel>(model_);
+  // ParallelKinematicModel* child_model = (ParallelKinematicModel*)model;
   max_lengths = child_model->GetMaximumLength();
   min_lengths = child_model->GetMinimumLength();
   ped_root_pos = child_model->GetRootPosition(ee); //TODO: to implement
@@ -60,8 +63,8 @@ RangeOfElongationConstraint::GetRow (int node, int dim) const
 }
 
 
-Matrix3d 
-EERootBase(double t) const
+Eigen :: Matrix3d 
+RangeOfElongationConstraint::EERootBase(double t) const
 {
   Vector3d base_W  = base_linear_->GetPoint(t).p();
   Vector3d pos_ee_W = ee_motion_->GetPoint(t).p();
@@ -88,8 +91,8 @@ RangeOfElongationConstraint::UpdateBoundsAtInstance (double t, int k, VecBound& 
 {
   for (int dim=0; dim<k3D; ++dim) {
     ifopt::Bounds b;
-    b.upper_ = max_lengths(dim);
-    b.lower_ = max_lengths(dim);
+    b.upper_ = max_lengths;
+    b.lower_ = min_lengths;
     bounds.at(GetRow(k,dim)) = b;
   }
 }

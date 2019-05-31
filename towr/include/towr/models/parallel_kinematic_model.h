@@ -49,7 +49,7 @@ namespace towr {
  */
 class ParallelKinematicModel: public KinematicModel  {
 public:
-  using Ptr      = std::shared_ptr<KinematicModel>;
+  using Ptr      = std::shared_ptr<ParallelKinematicModel>;
   using Vector3d = Eigen::Vector3d;
   using Matrix3d = Eigen::Matrix3d;
   ParallelKinematicModel(int n_ee) : KinematicModel(n_ee)
