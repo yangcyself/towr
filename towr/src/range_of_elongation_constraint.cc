@@ -106,7 +106,8 @@ RangeOfElongationConstraint::UpdateJacobianAtInstance (double t, int k,
                                                    Jacobian& jac) const
 {
   EulerConverter::MatrixSXd b_R_w = base_angular_.GetRotationMatrixBaseToWorld(t).transpose();
-  EulerConverter::MatrixSXd root_to_ee_B = EERootBase(t).sparseView();
+  EulerConverter::MatrixSXd root_to_ee_B = EERootBase(t).sparseView(); 
+          //EERootBase returns a dense matrix, However the jac is sparse matrix
   int row_start = GetRow(k,X);
 
   if (var_set == id::base_lin_nodes) {
