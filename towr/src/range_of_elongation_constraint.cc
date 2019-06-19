@@ -72,7 +72,10 @@ RangeOfElongationConstraint::EERootBase(double t) const
   Vector3d vector_base_to_ee_W = pos_ee_W - base_W;
   Vector3d vector_base_to_ee_B = b_R_w*(vector_base_to_ee_W); //get the ee pos in the base coordinate
 
-  Matrix3d root_to_ee_B = - ped_root_pos.rowwise() + vector_base_to_ee_B.transpose() ; 
+  // Matrix3d root_to_ee_B = - ped_root_pos.rowwise() + vector_base_to_ee_B.transpose() ; 
+  Matrix3d root_to_ee_B = - ped_root_pos;
+  root_to_ee_B.rowwise() += vector_base_to_ee_B.transpose();
+
   return root_to_ee_B;
 }
 
@@ -103,12 +106,12 @@ RangeOfElongationConstraint::UpdateJacobianAtInstance (double t, int k,
                                                    Jacobian& jac) const
 {
   EulerConverter::MatrixSXd b_R_w = base_angular_.GetRotationMatrixBaseToWorld(t).transpose();
-  Matrix3d root_to_ee_B = EERootBase(t);
+  EulerConverter::MatrixSXd root_to_ee_B = EERootBase(t).sparseView();
   int row_start = GetRow(k,X);
 
   if (var_set == id::base_lin_nodes) {
     jac.middleRows(row_start, k3D) = 2*root_to_ee_B*(-1*b_R_w*base_linear_->GetJacobianWrtNodes(t, kPos)); 
-                                                            // the returning type Eigen::SparseMatrix<double, Eigen::RowMajor>;
+                                                            //GetJacobianWrtNodes the returning type: Eigen::SparseMatrix<double, Eigen::RowMajor>;
   } 
 
   if (var_set == id::base_ang_nodes) {

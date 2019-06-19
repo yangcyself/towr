@@ -47,11 +47,10 @@ namespace towr {
   *
   * These constraints are necessary to avoid configurations
   * that are outside the kinematic reach of the robot. The constraint
-  * is defined by Cartesian estimates of the reachability of each endeffector.
+  * is defined by Cartesian estimates of the reachability of **each endeffector**.
   *
   * This constraint calculates the position of of the contact expressed in the
-  * current CoM frame and constrains it to lie in a box around the nominal/
-  * natural contact position for that leg.
+  * current CoM frame and constrains the distance between the endeffector and the root.
   *
   * @ingroup Constraints
   */
