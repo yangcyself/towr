@@ -30,6 +30,9 @@ This fork of Towr aims to add some functionalities to work with little_blue_hexp
    1. nlp_formulation 是从model得到NLP的一个过程，调用它的逻辑在TowrRosInterface :: UserCommandCallback 里面
    2. 在GetConstraint里面加了case EEMotorRange的情况，并且NlpFormulation :: MakeRangeOfElongationConstraint (const SplineHolder& s) const 的定义
 
+debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserCommandCallback
+如果哪里运行中报错,从那里进入
+
 添加的地方(加入小蓝机器人)：
 1. robot_model.h
 2. robot_model.cc

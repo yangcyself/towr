@@ -53,7 +53,9 @@ public:
   using Vector3d = Eigen::Vector3d;
   using Matrix3d = Eigen::Matrix3d;
   ParallelKinematicModel(int n_ee) : KinematicModel(n_ee)
-  {  }
+  {
+    root_positions.resize(n_ee); 
+  }
   
   virtual Matrix3d GetRootPosition(int ee) const
   {

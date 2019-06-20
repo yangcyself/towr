@@ -56,9 +56,9 @@ Parameters::Parameters (bool useElongConstraint)
   constraints_.push_back(Dynamic); //Ensures that the dynamic model is fullfilled at discrete times.
   constraints_.push_back(BaseAcc); // so accelerations don't jump between polynomials
   if(useElongConstraint)
-    constraints_.push_back(EndeffectorRom); //Ensures that the range of motion is respected at discrete times.
-  else
     constraints_.push_back(EEMotorRange);
+  else
+    constraints_.push_back(EndeffectorRom); //Ensures that the range of motion is respected at discrete times.
   constraints_.push_back(Force); // ensures unilateral forces and inside the friction cone.
   constraints_.push_back(Swing); // creates smoother swing motions, not absolutely required.
 
