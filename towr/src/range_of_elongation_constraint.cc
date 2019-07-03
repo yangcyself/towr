@@ -85,7 +85,7 @@ RangeOfElongationConstraint::UpdateConstraintAtInstance (double t, int k, Vector
 
   Matrix3d root_to_ee_B = EERootBase(t);
   root_to_ee_B = root_to_ee_B.array() * root_to_ee_B.array();
-  Vector3d elongations = root_to_ee_B.rowwise().sum();
+  Vector3d elongations = root_to_ee_B.rowwise().sum(); // this line has no problem
   g.middleRows(GetRow(k, X), k3D) = elongations;
 }
 

@@ -90,8 +90,8 @@ public:
                               -x_position_2, -y_position_2 ,z_position_0,
                               -x_position_3, y_position_3  ,z_position_0;
 
-    min_length = 0.1; // note here is the square of the length
-    max_length = 0.5;
+    min_length = 0.4; // note here is the square of the length
+    max_length = 0.9;
     max_dev_from_nominal_ << 0.2, 0.2, 0.2;
   }
 };
