@@ -86,7 +86,7 @@ static PyObject *py_sample_run(PyObject *self, PyObject *args) {
 
 /* Module method table */
 static PyMethodDef PytowrMethods[] = {
-  {"sample_run", py_sample_run, METH_VARARGS, "run the optimization of a monoped"},
+  {"sample_run", py_sample_run, METH_VARARGS, "run the optimization of a monoped"}, // copid from tutorial
   { NULL, NULL, 0, NULL}
 };
 
@@ -103,6 +103,6 @@ static struct PyModuleDef pytowrmodule = {
 /* Module initialization function */
 PyMODINIT_FUNC
 PyInit_pytowr(void) {
-  printf("hahaha I'm Initialized");
+  printf("hahaha I'm Initialized\n");
   return PyModule_Create(&pytowrmodule);
 }

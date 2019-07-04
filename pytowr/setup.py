@@ -13,7 +13,7 @@ setup(name='sample',
                 #   undef_macros = ['BAR'],
                   library_dirs = ['/usr/local/lib',"/home/yangcy/programs/towr/towr/build"],
                   # libraries = ['/usr/local/lib/libifopt_ipopt.so' ,'/usr/local/lib/libifopt_core.so'],
-                  libraries = ['ifopt_ipopt' ,'ifopt_core'],
+                  libraries = ['ifopt_ipopt' ,'ifopt_core',"towr"],
                   extra_link_args = ['-rdynamic'],
                   extra_compile_args = ["-std=gnu++11"],
                   )
