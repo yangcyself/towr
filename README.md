@@ -1,3 +1,32 @@
+# pytowr
+The python wrapper for the towr.
+
+The aim for this fork is to expose the towr program to other trajectory optimization program and simulation environment, via python.
+
+## setup pytowr
+run the following command in the folder [pytowr](pytowr)
+```bash
+#bash pytowr/
+python3 setup.py build_ext --inplace
+```
+Then the module `pytowr` can be used when `pytowr.cpython-35m-x86_64-linux-gnu.so` is in python path.
+
+### on compiler error
+I hard coded the general include path and the library path in the [setup script](pytowr/setup.py). If there is some compiler error, the paths are the first things to be checked.
+
+#### to get the paths in your environment, look at the camkefile and its caches in towr
+first make a build dir in towr, and use cmake to build in it following the [original procedure](#towr-with-cmake).
+
+then check the [link.txt](towr/build/CMakeFiles/towr-example.dir/link.txt) and see where your `libifopt_core.so` is located, and put the location into the "library_dirs" field in [setup.py](pytowr/setup.py)
+
+then check the [flags.make](towr/build/CMakeFiles/towr-example.dir/flags.make) to see the include path and other flags
+
+## use pytowr
+```python
+import pytowr
+pytowr.sample_run(1,2) # runs the trajectory search of monoped on flat plane.
+```
+
 # Blue_Towr
 
 This fork of Towr aims to add some functionalities to work with little_blue_hexpod and to work in real envionment and real time
