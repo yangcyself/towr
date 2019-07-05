@@ -155,6 +155,22 @@ Visualization Manager:
       Update Interval: 0
       Value: false
       Visual Enabled: true
+      Alpha: 0.5
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+      Name: ANYmal (proprietary)
+      Robot Description: /hexapod_rviz_urdf_robot_description
+      TF Prefix: hexapod_des
+      Update Interval: 0
+      Value: false
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255

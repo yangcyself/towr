@@ -60,14 +60,14 @@ static std::map<towr::QuadrupedIDs, xpp::quad::FootIDs> quad_to_xpp_id =
 /*
 I can only write like this because we havn't defined xpp
 */
-static std::map<towr::HexapedIDs, xpp::quad::FootIDs> hexa_to_xpp_id =
+static std::map<towr::HexapedIDs, xpp::hexa::FootIDs> hexa_to_xpp_id =
 {
-    {LA, xpp::quad::LH },
-    {LB, xpp::quad::LH },
-    {LC, xpp::quad::LH},
-    {RA, xpp::quad::RH},
-    {RB, xpp::quad::RH },
-    {RC, xpp::quad::RH  }
+    {LA, xpp::hexa::LA },
+    {LB, xpp::hexa::LB },
+    {LC, xpp::hexa::LC},
+    {RA, xpp::hexa::RA},
+    {RB, xpp::hexa::RB },
+    {RC, xpp::hexa::RC }
 };
 
 
