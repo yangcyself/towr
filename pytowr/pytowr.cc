@@ -152,11 +152,12 @@ towr::Parameters GetTowrParameters(int n_ee)
 
 
 static PyObject *py_run(PyObject *self, PyObject *args) {
-  int a, b;
-  if (!PyArg_ParseTuple(args, "ii", &a, &b)) {
+  double a, b, timescale;
+  if (!PyArg_ParseTuple(args, "ddd", &a, &b, &timescale)) {
     return NULL;
   }
   using namespace towr;
+  std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
   NlpFormulation formulation;
 
   // terrain
@@ -169,7 +170,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   formulation.initial_ee_W_ = nominal_stance_B;
 
   // // define the desired goal state of the hopper
-  formulation.final_base_.lin.at(towr::kPos) << 1.3, 0, robot_z;
+  formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
 
   int n_ee=6;
   // formulation.params_ = GetTowrParameters(n_ee);
@@ -217,12 +218,12 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     for(int i = 0;i<6;i++){ 
       // cout << "Foot position x,y,z:          \t";
       // cout << solution.ee_motion_.at(0)->GetPoint(t).p().transpose() << "\t[m]" << endl;
-      PyObject* footposition = eigenwrapper(solution.ee_motion_.at(0)->GetPoint(t).p());
+      PyObject* footposition = eigenwrapper(solution.ee_motion_.at(i)->GetPoint(t).p());
 
       // cout << "Contact force x,y,z:          \t";
       // cout << solution.ee_force_.at(0)->GetPoint(t).p().transpose() << "\t[N]" << endl;
 
-      bool contact = solution.phase_durations_.at(0)->IsContactPhase(t);
+      bool contact = solution.phase_durations_.at(i)->IsContactPhase(t);
       PyObject* footstate = Py_BuildValue("(Oi)",footposition,contact);
       // std::string foot_in_contact = contact? "yes" : "no";
       // cout << "Foot in contact:              \t" + foot_in_contact << endl;
@@ -230,10 +231,11 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     }
     PyObject* foots = Py_BuildValue("(OOOOOO)",footstates[0],footstates[1],footstates[2],
                                       footstates[3],footstates[4],footstates[5]);
-    PyList_Append(res,Py_BuildValue("(OOO)",basePos,baseEuler,foots));
+    PyList_Append(res,Py_BuildValue("(dOOO)",t,basePos,baseEuler,foots));
     cout << endl;
 
-    t += 0.2;
+    // t += 0.2;
+    t += timescale;
   }
 
   return res;
