@@ -4,7 +4,13 @@ The python wrapper for the towr.
 The aim for this fork is to expose the towr program to other trajectory optimization program and simulation environment, via python.
 
 ## setup pytowr
+
+### compile the towr library
+following the [cmake method](#towr-with-cmake) to compile towr
+to compile `libtowr.so` that we will use later.
+
 run the following command in the folder [pytowr](pytowr)
+
 ```bash
 #bash pytowr/
 python3 setup.py build_ext --inplace
@@ -23,8 +29,17 @@ then check the [flags.make](towr/build/CMakeFiles/towr-example.dir/flags.make) t
 
 ## use pytowr
 ```python
+# call python with LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path-to-libtowr.so> python3
 import pytowr
 pytowr.sample_run(1,2) # runs the trajectory search of monoped on flat plane.
+
+pos = pytowr.run(5.,0.,0.1) # target x, target y, time scale of the return list
+def showtime(i):
+    a = pos[i]
+    print("time: ",a[0] ,"body: ",a[1],a[2])
+    foots = a[3]
+    for f,p in enumerate(foots):
+        print( f, p ) # (position of foot point, is_contacting_ground)
 ```
 
 # Blue_Towr
