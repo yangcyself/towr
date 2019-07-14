@@ -34,7 +34,7 @@ import pytowr
 pytowr.sample_run(1,2) # runs the trajectory search of monoped on flat plane.
 
 terrain = lambda x,y: 0.0 # the terrain function
-cost,pos = pytowr.run(5.,0.,0.1, terrain) # target x, target y, time scale of the return list
+pos, cost = pytowr.run(5.,0.,0.1, terrain) # target x, target y, time scale of the return list
 print("cost",cost)
 def showtime(i):
     a = pos[i]
