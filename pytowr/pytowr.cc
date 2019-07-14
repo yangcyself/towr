@@ -241,14 +241,14 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 
   double t = 0.0;
   while (t<=solution.base_linear_->GetTotalTime() + 1e-5) {
-    cout << "t=" << t << "\n";
-    cout << "Base linear position x,y,z:   \t";
+    // cout << "t=" << t << "\n";
+    // cout << "Base linear position x,y,z:   \t";
     cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]" << endl;
     // PyList_Append(res,eigenwrapper(solution.base_linear_->GetPoint(t).p()));
     PyObject* basePos = eigenwrapper(solution.base_linear_->GetPoint(t).p());
-    cout << "Base Euler roll, pitch, yaw:  \t";
+    // cout << "Base Euler roll, pitch, yaw:  \t";
     Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
-    cout << (rad/M_PI*180).transpose() << "\t[deg]" << endl;
+    // cout << (rad/M_PI*180).transpose() << "\t[deg]" << endl;
     PyObject* baseEuler = eigenwrapper(solution.base_angular_->GetPoint(t).p());
 
     PyObject* footstates[6];
@@ -268,14 +268,18 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     }
     PyObject* foots = Py_BuildValue("(OOOOOO)",footstates[0],footstates[1],footstates[2],
                                       footstates[3],footstates[4],footstates[5]);
+    
+    
     PyList_Append(res,Py_BuildValue("(dOOO)",t,basePos,baseEuler,foots));
-    cout << endl;
+    // cout << endl;
 
     // t += 0.2;
     t += timescale;
   }
 
-  return res;
+  int solve_cost = nlp.GetIterationCount();
+  // return res;
+  return Py_BuildValue("(Oi)",res,solve_cost);
 }
 
 
