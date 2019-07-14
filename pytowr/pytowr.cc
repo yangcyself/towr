@@ -151,9 +151,45 @@ towr::Parameters GetTowrParameters(int n_ee)
   }
 
 
+class pyterrain : public towr::HeightMap {
+public:
+  pyterrain(PyObject *func):terrainCallback(func){}
+  double GetHeight(double x, double y) const override{
+    PyObject *arglist;
+    PyObject *result;
+    double height;
+    /* Time to call the callback */
+    arglist = Py_BuildValue("(dd)", x,y);
+    result = PyObject_CallObject(terrainCallback, arglist);
+    if (!PyArg_Parse(result, "d", &height)) {
+      std::cout<<"cannot parse the height returned from call back"<<std::endl;
+      return NULL;
+    }
+    return height;
+  }
+private:
+  PyObject *terrainCallback;
+};
+
+static PyObject *py_test_callback(PyObject *self, PyObject *args) {
+  PyObject *func;
+  if (!PyArg_ParseTuple(args, "O",&func)) {
+    return NULL;
+  }
+  if (!PyCallable_Check(func)) {
+      PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+      return NULL;
+  }
+  using namespace towr;
+  auto terrain = std::make_shared<pyterrain>(func);
+  terrain->GetHeight(0,0);
+  return Py_None;
+}
+
 static PyObject *py_run(PyObject *self, PyObject *args) {
   double a, b, timescale;
-  if (!PyArg_ParseTuple(args, "ddd", &a, &b, &timescale)) {
+  PyObject *func;
+  if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
     return NULL;
   }
   using namespace towr;
@@ -161,7 +197,8 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   NlpFormulation formulation;
 
   // terrain
-  formulation.terrain_ = std::make_shared<FlatGround>(0.0);
+  // formulation.terrain_ = std::make_shared<FlatGround>(0.0);
+  formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   double robot_z = 0.45;
   // set the initial position of the hopper
@@ -248,6 +285,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 static PyMethodDef PytowrMethods[] = {
   {"sample_run", py_sample_run, METH_VARARGS, "run the optimization of a monoped"}, // copid from tutorial
   {"run", py_run, METH_VARARGS, "the most import function for the hexpod"}, // copid from tutorial
+  {"test_callback", py_test_callback, METH_VARARGS, "test the call back function implementation, for debug use"}, // copid from tutorial
   { NULL, NULL, 0, NULL}
 };
 
