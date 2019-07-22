@@ -70,7 +70,7 @@ TowrRosInterface::GetGoalState(const TowrCommandMsg& msg) const
   goal.lin.at(kVel) = xpp::Convert::ToXpp(msg.goal_lin.vel);
   goal.ang.at(kPos) = xpp::Convert::ToXpp(msg.goal_ang.pos);
   goal.ang.at(kVel) = xpp::Convert::ToXpp(msg.goal_ang.vel);
-
+  
   return goal;
 }
 

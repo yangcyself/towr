@@ -1,3 +1,49 @@
+# pytowr
+The python wrapper for the towr.
+
+The aim for this fork is to expose the towr program to other trajectory optimization program and simulation environment, via python.
+
+## setup pytowr
+
+### compile the towr library
+following the [cmake method](#towr-with-cmake) to compile towr
+to compile `libtowr.so` that we will use later.
+
+run the following command in the folder [pytowr](pytowr)
+
+```bash
+#bash pytowr/
+python3 setup.py build_ext --inplace
+```
+Then the module `pytowr` can be used when `pytowr.cpython-35m-x86_64-linux-gnu.so` is in python path.
+
+### on compiler error
+I hard coded the general include path and the library path in the [setup script](pytowr/setup.py). If there is some compiler error, the paths are the first things to be checked.
+
+#### to get the paths in your environment, look at the camkefile and its caches in towr
+first make a build dir in towr, and use cmake to build in it following the [original procedure](#towr-with-cmake).
+
+then check the [link.txt](towr/build/CMakeFiles/towr-example.dir/link.txt) and see where your `libifopt_core.so` is located, and put the location into the "library_dirs" field in [setup.py](pytowr/setup.py)
+
+then check the [flags.make](towr/build/CMakeFiles/towr-example.dir/flags.make) to see the include path and other flags
+
+## use pytowr
+```python
+# call python with LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path-to-libtowr.so> python3
+import pytowr
+pytowr.sample_run(1,2) # runs the trajectory search of monoped on flat plane.
+
+terrain = lambda x,y: 0.0 # the terrain function
+pos, cost = pytowr.run(5.,0.,0.1, terrain) # target x, target y, time scale of the return list
+print("cost",cost)
+def showtime(i):
+    a = pos[i]
+    print("time: ",a[0] ,"body: ",a[1],a[2])
+    foots = a[3]
+    for f,p in enumerate(foots):
+        print( f, p ) # (position of foot point, is_contacting_ground)
+```
+
 # Blue_Towr
 
 This fork of Towr aims to add some functionalities to work with little_blue_hexpod and to work in real envionment and real time
@@ -29,6 +75,9 @@ This fork of Towr aims to add some functionalities to work with little_blue_hexp
 8. nlp_formulation.cc 和 nlp_formulation.h
    1. nlp_formulation 是从model得到NLP的一个过程，调用它的逻辑在TowrRosInterface :: UserCommandCallback 里面
    2. 在GetConstraint里面加了case EEMotorRange的情况，并且NlpFormulation :: MakeRangeOfElongationConstraint (const SplineHolder& s) const 的定义
+
+debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserCommandCallback
+如果哪里运行中报错,从那里进入
 
 添加的地方(加入小蓝机器人)：
 1. robot_model.h

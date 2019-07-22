@@ -65,7 +65,6 @@ public:
     nominal_stance_.at(RB) <<  x_nominal_2,  -y_nominal_2, z_nominal;
     nominal_stance_.at(RC) << -x_nominal_1,  -y_nominal_1, z_nominal;
 
-    max_dev_from_nominal_ << 0.15, 0.1, 0.10;
 
     root_positions.at(LA) <<  x_position_1, y_position_1  ,0,
                               x_position_2, y_position_2  ,z_position_0,
@@ -75,24 +74,24 @@ public:
                                 x_position_4 , y_position_5  ,z_position_0,
                                 -x_position_4  , y_position_5  ,z_position_0;
 
-    root_positions.at(LC) <<  -x_position_1, y_position_1,0
+    root_positions.at(LC) <<  -x_position_1, y_position_1,0,
                                -x_position_3 ,y_position_3  ,z_position_0,
                                -x_position_2, y_position_2  ,z_position_0;
 
-    root_positions.at(RA) <<  x_position_1, -y_position_1  ,0
+    root_positions.at(RA) <<  x_position_1, -y_position_1  ,0,
                                x_position_3, -y_position_3 ,z_position_0,
                                x_position_2, -y_position_2 ,z_position_0;
 
-    root_positions.at(RB) <<  0, -y_position_4  ,0
+    root_positions.at(RB) <<  0, -y_position_4  ,0,
                               -x_position_4, -y_position_5   ,z_position_0,
                               x_position_4, -y_position_5  ,z_position_0;
 
-    root_positions.at(RC) << -x_position_1, -y_position_1     ,0
+    root_positions.at(RC) << -x_position_1, -y_position_1     ,0,
                               -x_position_2, -y_position_2 ,z_position_0,
                               -x_position_3, y_position_3  ,z_position_0;
 
-    min_length = 0.01; // note here is the square of the length
-    max_length = 0.02;
+    min_length = 0.4; // note here is the square of the length
+    max_length = 0.9;
     max_dev_from_nominal_ << 0.2, 0.2, 0.2;
   }
 };

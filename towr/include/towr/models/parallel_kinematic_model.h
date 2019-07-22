@@ -49,24 +49,25 @@ namespace towr {
  */
 class ParallelKinematicModel: public KinematicModel  {
 public:
-  using Ptr      = std::shared_ptr<KinematicModel>;
-  using EEPos    = std::vector<Eigen::Vector3d>;
+  using Ptr      = std::shared_ptr<ParallelKinematicModel>;
   using Vector3d = Eigen::Vector3d;
   using Matrix3d = Eigen::Matrix3d;
   ParallelKinematicModel(int n_ee) : KinematicModel(n_ee)
-  {  }
+  {
+    root_positions.resize(n_ee); 
+  }
   
-  virtual EEPos GetRootPosition(int ee) const
+  virtual Matrix3d GetRootPosition(int ee) const
   {
     return root_positions[ee];
   }
 
-  virtual Vector3d GetMaximumLength() const
+  virtual double GetMaximumLength() const
   {
     return max_length;
   }
   
-  virtual Vector3d GetMinimumLength() const
+  virtual double GetMinimumLength() const
   {
     return min_length;
   }

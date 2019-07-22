@@ -90,7 +90,7 @@ public:
   }
 
 protected:
-  EEPos nominal_stance_;
+  EEPos nominal_stance_; //std::vector<Eigen::Vector3d>;
   Vector3d max_dev_from_nominal_;
 };
 

@@ -44,9 +44,13 @@ RangeOfElongationConstraint::RangeOfElongationConstraint (const KinematicModel::
   base_angular_ = EulerConverter(spline_holder.base_angular_);
   ee_motion_    = spline_holder.ee_motion_.at(ee);
 
-  max_lengths = model->GetMaximumLength();
-  min_lengths = model->GetMinimumLength();
-  ped_root_pos = model->GetRootPosition(ee); //TODO: to implement
+  std::shared_ptr<KinematicModel> model_ = model;
+  // ParallelKinematicModel::Ptr  
+  std::shared_ptr<ParallelKinematicModel> child_model = std::dynamic_pointer_cast<ParallelKinematicModel>(model_);
+  // ParallelKinematicModel* child_model = (ParallelKinematicModel*)model;
+  max_lengths = child_model->GetMaximumLength();
+  min_lengths = child_model->GetMinimumLength();
+  ped_root_pos = child_model->GetRootPosition(ee); //TODO: to implement
   ee_ = ee;
 
   SetRows(GetNumberOfNodes()*k3D);
@@ -59,8 +63,8 @@ RangeOfElongationConstraint::GetRow (int node, int dim) const
 }
 
 
-Matrix3d 
-EERootBase(double t) const
+Eigen :: Matrix3d 
+RangeOfElongationConstraint::EERootBase(double t) const
 {
   Vector3d base_W  = base_linear_->GetPoint(t).p();
   Vector3d pos_ee_W = ee_motion_->GetPoint(t).p();
@@ -68,7 +72,10 @@ EERootBase(double t) const
   Vector3d vector_base_to_ee_W = pos_ee_W - base_W;
   Vector3d vector_base_to_ee_B = b_R_w*(vector_base_to_ee_W); //get the ee pos in the base coordinate
 
-  Matrix3d root_to_ee_B = - ped_root_pos.rowwise() + vector_base_to_ee_B.transpose() ; 
+  // Matrix3d root_to_ee_B = - ped_root_pos.rowwise() + vector_base_to_ee_B.transpose() ; 
+  Matrix3d root_to_ee_B = - ped_root_pos;
+  root_to_ee_B.rowwise() += vector_base_to_ee_B.transpose();
+
   return root_to_ee_B;
 }
 
@@ -78,7 +85,7 @@ RangeOfElongationConstraint::UpdateConstraintAtInstance (double t, int k, Vector
 
   Matrix3d root_to_ee_B = EERootBase(t);
   root_to_ee_B = root_to_ee_B.array() * root_to_ee_B.array();
-  Vector3d elongations = root_to_ee_B.rowwise().sum();
+  Vector3d elongations = root_to_ee_B.rowwise().sum(); // this line has no problem
   g.middleRows(GetRow(k, X), k3D) = elongations;
 }
 
@@ -87,8 +94,8 @@ RangeOfElongationConstraint::UpdateBoundsAtInstance (double t, int k, VecBound& 
 {
   for (int dim=0; dim<k3D; ++dim) {
     ifopt::Bounds b;
-    b.upper_ = max_lengths(dim);
-    b.lower_ = max_lengths(dim);
+    b.upper_ = max_lengths;
+    b.lower_ = min_lengths;
     bounds.at(GetRow(k,dim)) = b;
   }
 }
@@ -99,12 +106,13 @@ RangeOfElongationConstraint::UpdateJacobianAtInstance (double t, int k,
                                                    Jacobian& jac) const
 {
   EulerConverter::MatrixSXd b_R_w = base_angular_.GetRotationMatrixBaseToWorld(t).transpose();
-  Matrix3d root_to_ee_B = EERootBase(t);
+  EulerConverter::MatrixSXd root_to_ee_B = EERootBase(t).sparseView(); 
+          //EERootBase returns a dense matrix, However the jac is sparse matrix
   int row_start = GetRow(k,X);
 
   if (var_set == id::base_lin_nodes) {
     jac.middleRows(row_start, k3D) = 2*root_to_ee_B*(-1*b_R_w*base_linear_->GetJacobianWrtNodes(t, kPos)); 
-                                                            // the returning type Eigen::SparseMatrix<double, Eigen::RowMajor>;
+                                                            //GetJacobianWrtNodes the returning type: Eigen::SparseMatrix<double, Eigen::RowMajor>;
   } 
 
   if (var_set == id::base_ang_nodes) {
