@@ -56,13 +56,22 @@ int main()
   // formulation.model_ = RobotModel(RobotModel::Hexpod);
   // formulation.model_ = RobotModel(RobotModel::Biped);
 
-  // double robot_z = 0.45; // hexpod
-  double robot_z = 0.5; // hopper
+  double z_ground = 0.0;
+  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+  double robot_z =  - nominal_stance_B.front().z() + z_ground;
+  formulation.initial_ee_W_ =  nominal_stance_B;
+  std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
+                [&](Eigen::Vector3d& p){ p(2) = z_ground; } // feet at 0 height
+  );
+
+  // formulation.initial_base_.lin.at(towr::kPos)(3) = - nominal_stance_B.front()(3) + z_ground;
+  // double robot_z = 0.58; // hopper
+  // Eigen::Matrix<double, 3,1> normbase = {0,0,robot_z};
   // set the initial position of the hopper
   formulation.initial_base_.lin.at(kPos).z() = robot_z;
-  //formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
-  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-  formulation.initial_ee_W_ = nominal_stance_B;
+  // formulation.initial_ee_W_.push_back(Eigen::Vector3d::Zero());
+  // auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+  // formulation.initial_ee_W_ = nominal_stance_B;
 
   // define the desired goal state of the hopper
   formulation.final_base_.lin.at(towr::kPos) << 1.3, 0, robot_z;
