@@ -132,6 +132,14 @@ def showtime(i):
         print( f, p ) # (position of foot point, is_contacting_ground)
 ```
 
+### 与vrep结合
+见[vrepPlayGround](vrepPlayGround)
+
+把`vrep.py`,`vrepConst.py`,`remoteApi.dll`放进去. notebook中是使用读pkl的方式展示的,但是当然可以在线搜索
+
+## 使用注意:
+- 目前版本哪怕无解也会返回一个曲线, 使用者请切记检查一下这个解是不是一个合法的解
+- 由于步数固定, 搜索的是有范围的, 比如搜索三三步态到(5,0)无解, 但是搜索到(2,0)有解 
 
 # 算法介绍
 这个算法机器人轨迹搜索的问题转换成一个非线性优化的问题, 所以从 **模型抽象**, **函数表示**, 和 **约束条件**讲解
