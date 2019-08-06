@@ -171,7 +171,7 @@ void //[YCY] added the new function
 NodesVariables::LockBound (Dx deriv,int dim ,const VectorXd& val)
 {
   for (int idx=0; idx< GetRows(); ++idx)
-    for (auto nvi : NodesVariables::GetNodeValuesInfo(idx)) //GetNodeValuesInfo 好像只会push一个info在vector里面
+    for (auto nvi : GetNodeValuesInfo(idx)) //GetNodeValuesInfo 好像只会push一个info在vector里面
       if (nvi.deriv_==deriv && nvi.dim_ ==dim ) 
           bounds_.at(idx) = ifopt::Bounds( val(idx), val(idx));
 }
