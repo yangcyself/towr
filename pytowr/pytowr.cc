@@ -225,8 +225,57 @@ const char* variableNames[] = {"base-lin", "base-ang",  // this should be const,
                         "ee-motion_3", "ee-force_3", 
                         "ee-motion_4", "ee-force_4", 
                         "ee-motion_5", "ee-force_5"};
+/**
+ * Same with the py_run except that this does not actually calculate a solution, it just returns the init value
+ */
+static PyObject *py_initValues(PyObject *self, PyObject *args) 
+{
+  double a, b, timescale;
+  PyObject *func;
+  PyObject *initmap;
+  if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+    return NULL;
+  }
+  using namespace towr;
+  std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
+  NlpFormulation formulation;
 
+  // terrain
+  formulation.terrain_ = std::make_shared<pyterrain>(func);
+  formulation.model_ = RobotModel(RobotModel::Hexpod);
+  double robot_z = 0.45;
+  // set the initial position
+  formulation.initial_base_.lin.at(kPos).z() = robot_z;
+  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+  formulation.initial_ee_W_ = nominal_stance_B;
 
+  // define the desired goal state
+  formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
+
+  int n_ee=6;
+  formulation.params_ = GetTowrParameters(n_ee);
+
+  SetTowrInitialState(formulation);
+
+  ifopt::Problem nlp;
+  SplineHolder solution;
+  for (auto c : formulation.GetVariableSets(solution))
+    nlp.AddVariableSet(c);
+  for (auto c : formulation.GetConstraints(solution))
+    nlp.AddConstraintSet(c);
+  for (auto c : formulation.GetCosts())
+    nlp.AddCostSet(c);
+
+  PyObject *variableDict = PyDict_New();
+
+  ifopt::Composite::Ptr VariablePtr = nlp.GetOptVariables();
+  for (auto varstr : variableNames ){
+    // std::cout<<"varstr: "<<varstr<<std::endl;
+    ifopt::Component::Ptr componentPtr = VariablePtr -> GetComponent(varstr);
+    PyDict_SetItemString(variableDict, varstr, eigen2numpy(componentPtr->GetValues()));
+  }
+  return variableDict;
+}
 
 
 static PyObject *py_run(PyObject *self, PyObject *args) {
@@ -310,13 +359,14 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *  Dx deriv_; ///< Derivative (pos,vel) of the node with that ID.
    *  int dim_;  ///< Dimension (x,y,z) of that derivative.
    */
-  // ifopt::Component::Ptr 
-  towr::NodesVariablesAll::Ptr BaselinPtr = VariablePtr -> GetComponent("base-lin");
-  Eigen::VectorXd baseVariables = BaselinPtr->GetValues();
+#ifdef LOCKDIM
+  std::shared_ptr<ifopt::Component> basecompon = VariablePtr -> GetComponent("base-lin");
+  towr::NodesVariablesAll::Ptr BaselinPtr = std::dynamic_pointer_cast<towr::NodesVariables>(basecompon);
+  Eigen::VectorXd baseVariables = BaselinPtr->GetValues(); //Need to cast from Component to NodesVariablesAll
   for(auto deriv : {towr::kPos,towr::kVel} )
     for(auto dim : {0,1} ) // Bound the x,y dimension
       BaselinPtr->LockBound(deriv,dim,baseVariables);
-
+#endif
 
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
@@ -394,6 +444,7 @@ static PyMethodDef PytowrMethods[] = {
   {"sample_run", py_sample_run, METH_VARARGS, "run the optimization of a monoped"}, // copid from tutorial
   {"run", py_run, METH_VARARGS, "the most import function for the hexpod"}, // copid from tutorial
   {"test_callback", py_test_callback, METH_VARARGS, "test the call back function implementation, for debug use"}, // copid from tutorial
+  {"initValues", py_initValues, METH_VARARGS, "return the initvalues of the variables"}, // copid from tutorial
   { NULL, NULL, 0, NULL}
 };
 

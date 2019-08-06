@@ -8,5 +8,6 @@
 #include <ifopt/ipopt_solver.h>
 #include <towr/variables/nodes_variables_all.h>
 
+#define LOCKDIM // whether to lock the x,y dimention of the hexpods body
 extern void sample_run(int a, int b);
 
