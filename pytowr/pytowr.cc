@@ -120,7 +120,12 @@ towr::Parameters GetTowrParameters(int n_ee)
 
   {
     using namespace towr;
-    Parameters towrparams(false);
+    /**
+     * Ture and False can set whether to use the elongation constraints
+     */
+    Parameters towrparams(false); 
+    // Parameters towrparams(true);
+
     // Parameters a = Parameters();
 
     // Parameters a = Parameters();
@@ -145,7 +150,9 @@ towr::Parameters GetTowrParameters(int n_ee)
     // towrparams.constraints_.push_back(Parameters::BaseRom);
     // increases optimization time, but sometimes helps find a solution for
     // more difficult terrain.
-    
+
+
+    // towrparams.OptimizePhaseDurations();
     return towrparams;
     // return 1;
   }
@@ -165,7 +172,7 @@ public:
       std::cout<<"cannot parse the height returned from call back"<<std::endl;
       Py_DECREF(arglist);
       Py_DECREF(result);
-      return NULL;
+      return 0.0;
     }
     Py_DECREF(arglist);
     Py_DECREF(result);
@@ -190,12 +197,57 @@ static PyObject *py_test_callback(PyObject *self, PyObject *args) {
   return Py_None;
 }
 
+Eigen::VectorXd numpy2eigen(PyObject* np)
+{
+  PyObject* pybytes = PyObject_CallMethod(np,"tobytes",NULL); // this is a new reference thus should be cleaned
+  PyObject* size = PyObject_GetAttrString(np,"size");
+  int n = PyLong_AsLong(size);   
+  char* bytes = PyBytes_AsString(pybytes); // the pointer to internal buffer, !!! should not be modified!!!
+  
+  Eigen::Map<Eigen::VectorXd> mf( (double*)bytes,n);
+  Py_DECREF(pybytes);
+  Py_DECREF(size);
+  return mf;
+}
+
+PyObject* eigen2numpy(Eigen::VectorXd egn)
+{
+  
+  double* v = egn.data();
+  PyObject* bytes = PyBytes_FromStringAndSize((char*)v,egn.size()*sizeof(double)); // It seems that I do not know how to import numpy module
+  return Py_BuildValue("(Oii)",bytes, egn.rows(),egn.cols());
+}
+
+const char* variableNames[] = {"base-lin", "base-ang",  // this should be const, otherwise it yield warning
+                        "ee-motion_0", "ee-force_0", 
+                        "ee-motion_1", "ee-force_1", 
+                        "ee-motion_2", "ee-force_2", 
+                        "ee-motion_3", "ee-force_3", 
+                        "ee-motion_4", "ee-force_4", 
+                        "ee-motion_5", "ee-force_5"};
+
+
+
+
 static PyObject *py_run(PyObject *self, PyObject *args) {
+  /**
+   * input:
+   *  target pos x
+   *  target pos y
+   *  output time scale
+   *  terrian call back function
+   *  init value dict {variable_name(pystring) : value(pylist)}
+   *  trainable bits # not implemented
+   */
   double a, b, timescale;
   PyObject *func;
-  if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+  PyObject *initmap;
+  if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func, &initmap)) {
     return NULL;
   }
+  // if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+  //   return NULL;
+  // }
   using namespace towr;
   std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
   NlpFormulation formulation;
@@ -205,13 +257,14 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   double robot_z = 0.45;
-  // set the initial position of the hopper
+  // set the initial position
   formulation.initial_base_.lin.at(kPos).z() = robot_z;
   auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
   formulation.initial_ee_W_ = nominal_stance_B;
 
-  // // define the desired goal state of the hopper
+  // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
+  // formulation.final_base_.ang.at(towr::kPos) << 0, 0, 1.57;
 
   int n_ee=6;
   // formulation.params_ = GetTowrParameters(n_ee);
@@ -221,6 +274,10 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 
   // Initialize the nonlinear-programming problem with the variables,
   // constraints and costs.
+  /**
+   * 这里的一个variable 是一个 NodesVariablesAll
+   * 它的父类一路上去是 towr::NodesVariables -> ifopt::VariableSet -> ifopt::Component (composite是component的另一个子类,不知道和variable set有什么区别)
+   */
   ifopt::Problem nlp;
   SplineHolder solution;
   for (auto c : formulation.GetVariableSets(solution))
@@ -230,6 +287,21 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   for (auto c : formulation.GetCosts())
     nlp.AddCostSet(c);
 
+  /**
+   * Update the variables
+   */ 
+  ifopt::Composite::Ptr VariablePtr = nlp.GetOptVariables();
+  PyObject *key, *value;
+  Py_ssize_t pos = 0;
+  // std::cout<<"before init"<<std::endl;
+  while (PyDict_Next(initmap, &pos, &key, &value)) {
+    key = PyUnicode_AsUTF8String(key);
+    std::string valName = std::string( PyBytes_AsString(key) );
+    // std::cout<<"key: "<<valName<<std::endl;
+    ifopt::Component::Ptr compoPtr = VariablePtr -> GetComponent(valName);
+    compoPtr -> SetVariables( numpy2eigen(value) );
+  }
+  
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
   // solver_->SetOption("linear_solver", "mumps"); //  alot faster,
@@ -247,11 +319,11 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   while (t<=solution.base_linear_->GetTotalTime() + 1e-5) {
     // cout << "t=" << t << "\n";
     // cout << "Base linear position x,y,z:   \t";
-    cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]" << endl;
+    // cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]" << endl;
     // PyList_Append(res,eigenwrapper(solution.base_linear_->GetPoint(t).p()));
     PyObject* basePos = eigenwrapper(solution.base_linear_->GetPoint(t).p());
     // cout << "Base Euler roll, pitch, yaw:  \t";
-    Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
+    // Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
     // cout << (rad/M_PI*180).transpose() << "\t[deg]" << endl;
     PyObject* baseEuler = eigenwrapper(solution.base_angular_->GetPoint(t).p());
 
@@ -282,8 +354,20 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   }
 
   int solve_cost = nlp.GetIterationCount();
+
+  /**
+   * Build a dict to return the final variables
+   */
+  PyObject *variableDict = PyDict_New();
+  
+  for (auto varstr : variableNames ){
+    // std::cout<<"varstr: "<<varstr<<std::endl;
+    ifopt::Component::Ptr componentPtr = VariablePtr -> GetComponent(varstr);
+    PyDict_SetItemString(variableDict, varstr, eigen2numpy(componentPtr->GetValues()));
+  }
+    
   // return res;
-  return Py_BuildValue("(Oi)",res,solve_cost);
+  return Py_BuildValue("(OiO)",res,solve_cost,variableDict);
 }
 
 
