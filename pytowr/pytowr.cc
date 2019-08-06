@@ -297,11 +297,27 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   while (PyDict_Next(initmap, &pos, &key, &value)) {
     key = PyUnicode_AsUTF8String(key);
     std::string valName = std::string( PyBytes_AsString(key) );
-    // std::cout<<"key: "<<valName<<std::endl;
+    std::cout<<"key: "<<valName<<std::endl;
     ifopt::Component::Ptr compoPtr = VariablePtr -> GetComponent(valName);
     compoPtr -> SetVariables( numpy2eigen(value) );
   }
   
+  /**
+   * Bound x,y,z
+   * Get the meaning of index via GetNodeValuesInfo
+   * Each info is a struct containing the following attributes
+   *  int id_;   ///< ID of the associated node (0 =< id < number of nodes in spline).
+   *  Dx deriv_; ///< Derivative (pos,vel) of the node with that ID.
+   *  int dim_;  ///< Dimension (x,y,z) of that derivative.
+   */
+  // ifopt::Component::Ptr 
+  towr::NodesVariablesAll::Ptr BaselinPtr = VariablePtr -> GetComponent("base-lin");
+  Eigen::VectorXd baseVariables = BaselinPtr->GetValues();
+  for(auto deriv : {towr::kPos,towr::kVel} )
+    for(auto dim : {0,1} ) // Bound the x,y dimension
+      BaselinPtr->LockBound(deriv,dim,baseVariables);
+
+
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
   // solver_->SetOption("linear_solver", "mumps"); //  alot faster,

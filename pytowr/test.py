@@ -17,6 +17,11 @@ def raw2numpy(b, m,n):
 varDict = {k:raw2numpy(*v) for k,v in varDict.items()}
 
 if __name__ == "__main__":
-    import pickle as pkl
-    with open("pytowrDump.pkl","wb") as f:
-        pkl.dump(pos,f)
+    # import pickle as pkl
+    # with open("pytowrDump.pkl","wb") as f:
+    #     pkl.dump(pos,f)
+    for i in range(6):
+        del(varDict["ee-motion_%d"%i])
+        del(varDict["ee-force_%d"%i])
+    p,c,v =  pytowr.run(2.,0.,0.01, terrain,varDict)
+    print("new cost:",c)

@@ -162,9 +162,18 @@ void
 NodesVariables::AddBound (const NodeValueInfo& nvi_des, double val)
 {
   for (int idx=0; idx<GetRows(); ++idx)
-    for (auto nvi : GetNodeValuesInfo(idx))
+    for (auto nvi : GetNodeValuesInfo(idx)) // GetNodeValuesInfo 好像只会push一个info在vector里面
       if (nvi == nvi_des)
         bounds_.at(idx) = ifopt::Bounds(val, val);
+}
+
+void //[YCY] added the new function
+NodesVariables::LockBound (Dx deriv,int dim ,const VectorXd& val)
+{
+  for (int idx=0; idx< GetRows(); ++idx)
+    for (auto nvi : NodesVariables::GetNodeValuesInfo(idx)) //GetNodeValuesInfo 好像只会push一个info在vector里面
+      if (nvi.deriv_==deriv && nvi.dim_ ==dim ) 
+          bounds_.at(idx) = ifopt::Bounds( val(idx), val(idx));
 }
 
 void
