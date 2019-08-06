@@ -182,33 +182,43 @@ private:
   PyObject *terrainCallback;
 };
 
-static PyObject *py_test_callback(PyObject *self, PyObject *args) {
-  PyObject *func;
-  if (!PyArg_ParseTuple(args, "O",&func)) {
-    return NULL;
-  }
-  if (!PyCallable_Check(func)) {
-      PyErr_SetString(PyExc_TypeError, "parameter must be callable");
-      return NULL;
-  }
-  using namespace towr;
-  auto terrain = std::make_shared<pyterrain>(func);
-  terrain->GetHeight(0,0);
-  return Py_None;
-}
 
-Eigen::VectorXd numpy2eigen(PyObject* np)
+/**
+ * conver an numpy array to eigen vector or matrix
+ */
+Eigen::MatrixXd numpy2eigen(PyObject* np, bool tomatrix = false)
 {
   PyObject* pybytes = PyObject_CallMethod(np,"tobytes",NULL); // this is a new reference thus should be cleaned
-  PyObject* size = PyObject_GetAttrString(np,"size");
-  int n = PyLong_AsLong(size);   
   char* bytes = PyBytes_AsString(pybytes); // the pointer to internal buffer, !!! should not be modified!!!
-  
-  Eigen::Map<Eigen::VectorXd> mf( (double*)bytes,n);
+  int m,n;
+  if(tomatrix){
+    PyObject* shape = PyObject_GetAttrString(np,"shape");
+    PyArg_ParseTuple(shape, "ii", &m, &n);
+    Py_DECREF(shape);
+  }else{
+    PyObject* size = PyObject_GetAttrString(np,"size");
+    m = PyLong_AsLong(size);   
+    n = 1;
+    Py_DECREF(size);
+  }
+  Eigen::Map<Eigen::Matrix <double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > mf( (double*)bytes,m,n);
   Py_DECREF(pybytes);
-  Py_DECREF(size);
   return mf;
 }
+
+
+// Eigen::MatrixXd numpy2eigen(PyObject* np, bool tomatrix = false)
+// {
+//   PyObject* pybytes = PyObject_CallMethod(np,"tobytes",NULL); // this is a new reference thus should be cleaned
+//   PyObject* size = PyObject_GetAttrString(np,"size");
+//   int n = PyLong_AsLong(size);   
+//   char* bytes = PyBytes_AsString(pybytes); // the pointer to internal buffer, !!! should not be modified!!!
+  
+//   Eigen::Map<Eigen::VectorXd> mf( (double*)bytes,n);
+//   Py_DECREF(pybytes);
+//   Py_DECREF(size);
+//   return mf;
+// }
 
 PyObject* eigen2numpy(Eigen::VectorXd egn)
 {
@@ -217,6 +227,28 @@ PyObject* eigen2numpy(Eigen::VectorXd egn)
   PyObject* bytes = PyBytes_FromStringAndSize((char*)v,egn.size()*sizeof(double)); // It seems that I do not know how to import numpy module
   return Py_BuildValue("(Oii)",bytes, egn.rows(),egn.cols());
 }
+
+static PyObject *py_test_callback(PyObject *self, PyObject *args) {
+  // PyObject *func;
+  // if (!PyArg_ParseTuple(args, "O",&func)) {
+  //   return NULL;
+  // }
+  // if (!PyCallable_Check(func)) {
+  //     PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+  //     return NULL;
+  // }
+  // using namespace towr;
+  // auto terrain = std::make_shared<pyterrain>(func);
+  // terrain->GetHeight(0,0);
+  // return Py_None;
+  PyObject *np;
+  if (!PyArg_ParseTuple(args, "O",&np)) {
+    return NULL;
+  }
+  std::cout<<numpy2eigen(np) <<std::endl;
+  return Py_None;
+}
+
 
 const char* variableNames[] = {"base-lin", "base-ang",  // this should be const, otherwise it yield warning
                         "ee-motion_0", "ee-force_0", 
@@ -232,7 +264,6 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
 {
   double a, b, timescale;
   PyObject *func;
-  PyObject *initmap;
   if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
     return NULL;
   }
@@ -286,17 +317,21 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *  output time scale
    *  terrian call back function
    *  init value dict {variable_name(pystring) : value(pylist)}
-   *  trainable bits # not implemented
+   *  Posture: a tuple: (body height, stance pos)
+   *      stancePos: the init positure of the robot(init EE positions in global cordinate sys), should be a 6*3 numpy array. 
+   *      None if the norminal_stance(defined in the robot model) is to be used
    */
   double a, b, timescale;
   PyObject *func;
   PyObject *initmap;
-  if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func, &initmap)) {
+  PyObject *posture;
+  if (!PyArg_ParseTuple(args, "dddOOO", &a, &b, &timescale, &func, &initmap, &posture)) {
     return NULL;
   }
-  // if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+  // if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func, &initmap)) {
   //   return NULL;
   // }
+  const int n_ee=6;
   using namespace towr;
   std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
   NlpFormulation formulation;
@@ -305,21 +340,41 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   // formulation.terrain_ = std::make_shared<FlatGround>(0.0);
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
+  
   double robot_z = 0.45;
-  // set the initial position
-  formulation.initial_base_.lin.at(kPos).z() = robot_z;
-  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-  formulation.initial_ee_W_ = nominal_stance_B;
 
+  //set the initial ee position
+  if(posture == Py_None){ // None is passed, use the default value
+    auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+    formulation.initial_ee_W_ = nominal_stance_B;
+    double z_ground = 0.0;
+    std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
+                  [&](Eigen::Vector3d& p){ p.z() = z_ground; } // feet at 0 height
+    );
+    formulation.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
+  }else{
+    PyObject *stancePos;
+    double bodyHeight;
+    if (!PyArg_ParseTuple(args, "dO", &bodyHeight, &stancePos)) {
+      return NULL;
+    }
+    towr::KinematicModel::EEPos init_ee_W;
+    Eigen::Matrix<double, n_ee,3 > ee_W_mat = numpy2eigen(stancePos,true);
+    for(int i = 0;i<n_ee;i++){
+      init_ee_W.push_back(ee_W_mat.row(i) );
+    }
+    formulation.initial_ee_W_ = init_ee_W;
+    formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
+  }
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
   // formulation.final_base_.ang.at(towr::kPos) << 0, 0, 1.57;
 
-  int n_ee=6;
+  
   // formulation.params_ = GetTowrParameters(n_ee);
   formulation.params_ = GetTowrParameters(n_ee);
 
-  SetTowrInitialState(formulation);
+  // SetTowrInitialState(formulation);
 
   // Initialize the nonlinear-programming problem with the variables,
   // constraints and costs.
@@ -363,7 +418,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   std::shared_ptr<ifopt::Component> basecompon = VariablePtr -> GetComponent("base-lin");
   towr::NodesVariablesAll::Ptr BaselinPtr = std::dynamic_pointer_cast<towr::NodesVariables>(basecompon);
   Eigen::VectorXd baseVariables = BaselinPtr->GetValues(); //Need to cast from Component to NodesVariablesAll
-  for(auto deriv : {towr::kPos,towr::kVel} )
+  for(auto deriv : {towr::kPos} ) // can have `towr::kVel` if you also want to lock velocity
     for(auto dim : {0,1} ) // Bound the x,y dimension
       BaselinPtr->LockBound(deriv,dim,baseVariables);
 #endif
