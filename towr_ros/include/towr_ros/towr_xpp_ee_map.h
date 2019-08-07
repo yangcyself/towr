@@ -58,7 +58,7 @@ static std::map<towr::QuadrupedIDs, xpp::quad::FootIDs> quad_to_xpp_id =
 };
 
 /*
-I can only write like this because we havn't defined xpp
+I can only write like this because we havn't defined xpp [YCY]
 */
 static std::map<towr::HexapedIDs, xpp::quad::FootIDs> hexa_to_xpp_id =
 {
@@ -87,7 +87,7 @@ static std::map<towr::QuadrupedIDs, std::string> quad_to_name =
   {RH, "Right-Hind" }
 };
 
-static std::map<towr::HexapedIDs, std::string> hexa_to_name =
+static std::map<towr::HexapedIDs, std::string> hexa_to_name = //[YCY]
 {
   {LA, "Left-Front" },
   {LB, "Left-middle" },
@@ -130,7 +130,7 @@ ToXppEndeffector(int number_of_ee, int towr_ee_id)
       break;
     }
     case 6:{
-      auto id = static_cast<towr::HexapedIDs>(towr_ee_id);
+      auto id = static_cast<towr::HexapedIDs>(towr_ee_id); //[YCY]
       ee.first  = hexa_to_xpp_id.at(id);
       ee.second = hexa_to_name.at(id);
       break;

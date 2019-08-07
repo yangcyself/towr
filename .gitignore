@@ -11,3 +11,4 @@ pytowr/doc/vrepPlayGround/vrep.py
 pytowr/doc/vrepPlayGround/vrepConst.py
 pytowr/doc/vrepPlayGround/.ipynb_checkpoints/pytowrAPI-checkpoint.ipynb
 pytowr/__pycache__/*
+pytowr/pytowr.c*

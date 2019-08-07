@@ -32,3 +32,57 @@ towr求解的是轨迹, 一个轨迹可以用不同的表示方法在空间中�
 想象轨迹是空间中的一个三次函数, 轨迹折线相当于是$f(t_0),f(t_1)....f(t_n)$, 我们引导机器人的动作就是使用的轨迹折线
 
 轨迹变量相当于函数的参数$a,b,c,d$, 我们用来设初始值简化计算的就是设置这个东西
+
+
+## towr内部机器人设置
+
+### 我在towr内部的修改
+第三次修改添加的地方(方便pytowr)
+1. `nodes_variables.h` & `nodes_variables.cc`
+   1. 增加lockbound 函数
+
+第二次修改添加的地方(加入并联电机长度约束):
+
+1. range_of_elongation_constraint.h
+   1. 这个是elongation constraint的头文件，这个类需要用到 parallel_kinematic_model
+   2. 其中需要double的max和min length, Matrix3d 的 ped_root_pos
+2. range_of_elongation_constraint.cc
+   1. 这里主要是改了jac的计算方式，由于我们的约束变量变成了距离的平方，而之前的时候boundingbox 的变量是脚到身体的向量，所以我们的jac都要乘一个2*（脚到root）
+   2. 得到数据利用model->GetMinimumLength 和 model->GetRootPosition(ee)
+3. parallel_kinematic_model.h
+   1. 是我创建的专门为了方便机器人这种并联结构的类，是KinematicModel的子类
+   2. 除了继承了前面的东西之外，实现了GetRootPosition，GetMaximumLength的接口
+4. hexpod_model.h
+   1. 把hexpod model原先是KinematicModel的子类，现在变成ParallelKinematicModel 的子类
+   2. 加入了root_positions， min_lengthmax_length 的参数定义
+5. robot_model.h 
+   1. 改了include
+   2. （后面其实应该用类的那个啥来着，就是用基类指针访问高级功能，但是忘了是啥了，后面再改
+6. towr_ros_app.cc
+   1. 整个towr_ros_app的main函数在这里面，这个文件里面又初始化应用的过程，设置参数的过程，还有提交给IPOPT的过程， TowrRosApp  是 TowrRosInterface 的子类， 在towrinterface.cpp里面有调用 这里定义的SetIpoptParameters
+   2. 在这里的设置参数的过程， 加了一个判断，如果n_ee = 6则params 的 useElongConstraint = true
+7. parameters.h 和 parameters.cc
+   1. parameters 用来选择求解的时候要用哪些约束
+   2. 在里面的ConstraintName 里面加了 EEMotorRange
+   3. parameter的初始化函数加了一个 useElongConstraint变量
+8. nlp_formulation.cc 和 nlp_formulation.h
+   1. nlp_formulation 是从model得到NLP的一个过程，调用它的逻辑在TowrRosInterface :: UserCommandCallback 里面
+   2. 在GetConstraint里面加了case EEMotorRange的情况，并且NlpFormulation :: MakeRangeOfElongationConstraint (const SplineHolder& s) const 的定义
+
+debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserCommandCallback
+如果哪里运行中报错,从那里进入
+
+添加的地方(加入小蓝机器人)：
+1. robot_model.h
+2. robot_model.cc
+3. towrCommand.msg （没有啥用的啦）
+4. 新增两个文件 hexpod_model.h 
+5. 要增加对应的EEPos nominal_stance_
+6. endeffector_mappings.h 增加六个脚的enum（按照vrep里面布局的convention
+7. xpp_towr.rviz (未完成)
+8. gait_generator.cc 
+9. 增加hexaped_gait_generator.cc /h
+10. CMakeList
+11. towr_ros/include/towr_ros/towr_xpp_ee_map.h
+    1.  增加了hexa_to_xpp_id (暂时使用的四足的xpp id)
+    2.  hexa_to_name
