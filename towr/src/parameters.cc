@@ -53,13 +53,13 @@ Parameters::Parameters (bool useElongConstraint)
 
   // a minimal set of basic constraints
   constraints_.push_back(Terrain);
-  // constraints_.push_back(Dynamic); //Ensures that the dynamic model is fullfilled at discrete times. [YCY]
+  constraints_.push_back(Dynamic); //Ensures that the dynamic model is fullfilled at discrete times. [YCY]
   constraints_.push_back(BaseAcc); // so accelerations don't jump between polynomials
   if(useElongConstraint)
     constraints_.push_back(EEMotorRange); //[YCY]
   else
     constraints_.push_back(EndeffectorRom); //Ensures that the range of motion is respected at discrete times.
-  // constraints_.push_back(Force); // ensures unilateral forces and inside the friction cone.[YCY]
+  constraints_.push_back(Force); // ensures unilateral forces and inside the friction cone.[YCY]
   constraints_.push_back(Swing); // creates smoother swing motions, not absolutely required.
 
   // optional costs to e.g penalize endeffector forces

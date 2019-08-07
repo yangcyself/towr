@@ -121,7 +121,14 @@ towr::Parameters GetTowrParameters(int n_ee)
   /**
    * Ture and False can set whether to use the elongation constraints
    */
-  Parameters towrparams(false); 
+  Parameters towrparams(false);
+
+#ifndef DYNAMIC_CONSTRAINT
+  auto &c = towrparams.constraints_;
+  c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Dynamic), c.end()); //delete the Dynamic constraints 
+  c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Force), c.end()); //delete the Dynamic constraints 
+#endif
+
   // Instead of manually defining the initial durations for each foot and
   // step, for convenience we use a GaitGenerator with some predefined gaits
   // for a variety of robots (walk, trot, pace, ...).

@@ -36,7 +36,7 @@ towr求解的是轨迹, 一个轨迹可以用不同的表示方法在空间中�
 
 ## towr内部机器人设置
 
-### 我在towr内部的修改
+### 我迄今为止在towr内部的修改
 第三次修改添加的地方(方便pytowr)
 1. `nodes_variables.h` & `nodes_variables.cc`
    1. 增加lockbound 函数
@@ -86,3 +86,4 @@ debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserComman
 11. towr_ros/include/towr_ros/towr_xpp_ee_map.h
     1.  增加了hexa_to_xpp_id (暂时使用的四足的xpp id)
     2.  hexa_to_name
+

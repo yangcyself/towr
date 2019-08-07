@@ -10,5 +10,6 @@
 
 #define LOCKDIM // whether to lock the x,y dimention of the hexpods body
 // #define OPTMIZE_DURATION // whether to optimize the duration(change the phase and gait)
+// #define DYNAMIC_CONSTRAINT // whether to use dynamic constraints
 extern void sample_run(int a, int b);
 
