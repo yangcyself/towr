@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../../") # to the pytowr location
 import pytowr 
 import os # change the path here does not work
 import numpy as np
