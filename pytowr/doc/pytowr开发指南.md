@@ -87,3 +87,56 @@ debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserComman
     1.  增加了hexa_to_xpp_id (暂时使用的四足的xpp id)
     2.  hexa_to_name
 
+### 可能需要的参数修改位置
+#### 机器人模型:
+见[hexpod_model.h](../../towr/include/towr/models/examples/hexpod_model.h)
+其中: 
+- `nominal_stance_` 是机器人正常站立时的姿势, 用于作为搜索时的初始位姿, 也为了确定range of motion的box 位置
+- `root_positions` 是机器人腿根的位置, 用于计算elongation
+- `min_length`, `max_length` 是机器人的elongation 的范围 **这个需要更加精确的范围**
+- `max_dev_from_nominal_` 是使用range of motion constraint的时候距离 `nominal_stance_` 的最大范围
+- `SingleRigidBodyDynamics` 传入的参数分别是 (double mass,
+                                  double Ixx, double Iyy, double Izz,
+                                  double Ixy, double Ixz, double Iyz,
+                                  int ee_count)
+
+#### 搜索参数
+见[parameter.cc](../../towr/src/parameters.cc)
+
+里面默认设置了很多参数,如下:
+```c++
+// constructs optimization variables
+  duration_base_polynomial_ = 0.1;
+  force_polynomials_per_stance_phase_ = 3;
+  ee_polynomials_per_swing_phase_ = 2; // so step can at least lift leg
+
+  // parameters related to specific constraints (only used when it is added as well)
+  force_limit_in_normal_direction_ = 1000;
+  dt_constraint_range_of_motion_ = 0.08;
+  dt_constraint_dynamic_ = 0.1;
+  dt_constraint_base_motion_ = duration_base_polynomial_/4.; // only for base RoM constraint
+  bound_phase_duration_ = std::make_pair(0.2, 1.0);  // used only when optimizing phase durations, so gait
+
+```
+这些我都没有改过, 但是后面可能有用
+
+#### 步态
+步态除了决定几个脚一起走之外, 还决定了步数, 所以要改长距离的移动一定要改变步态 (或者如果为了方便的话可以换一种方式), 但是目前, 步态的步数是在[hexaped_gait_generator.cc](../../towr/src/hexaped_gait_generator.cc)里面设置好的
+
+比如这里只设置了一种步态
+```c++
+void
+HexapedGaitGenerator::SetCombo (Combos combo)
+{
+  switch (combo) {
+    case C0: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Stand}); break;
+    default: assert(false); std::cout << "Gait not defined\n"; break;
+  }
+}
+
+```
+在`pytowr.cc`里面如下调用
+```c++
+auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
+  gait_gen_->SetCombo(towr::GaitGenerator::C0);
+```

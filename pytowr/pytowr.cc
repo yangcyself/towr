@@ -121,7 +121,11 @@ towr::Parameters GetTowrParameters(int n_ee)
   /**
    * Ture and False can set whether to use the elongation constraints
    */
+#ifdef BOX_CONSTRAINT
   Parameters towrparams(false);
+#else
+  Parameters towrparams(true);
+#endif
 
 #ifndef DYNAMIC_CONSTRAINT
   auto &c = towrparams.constraints_;
