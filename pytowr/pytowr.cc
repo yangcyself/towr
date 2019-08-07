@@ -116,46 +116,33 @@ void SetTowrInitialState(towr::NlpFormulation &formulation_)
 }
 
 towr::Parameters GetTowrParameters(int n_ee) 
-// int GetTowrParameters(int n_ee, towr::NlpFormulation &formulation_) 
-
-  {
-    using namespace towr;
-    /**
-     * Ture and False can set whether to use the elongation constraints
-     */
-    Parameters towrparams(false); 
-    // Parameters towrparams(true);
-
-    // Parameters a = Parameters();
-
-    // Parameters a = Parameters();
-
-
-    // Instead of manually defining the initial durations for each foot and
-    // step, for convenience we use a GaitGenerator with some predefined gaits
-    // for a variety of robots (walk, trot, pace, ...).
-    auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
-    auto id_gait   = static_cast<GaitGenerator::Combos>(0);
-    gait_gen_->SetCombo(id_gait);
-    double total_duration = 2.0;
-    for (int ee=0; ee<n_ee; ++ee) {
-      towrparams.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
-      towrparams.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
-    }
-    // for (int ee=0; ee<n_ee; ++ee) {
-    //   formulation_.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
-    //   formulation_.params_.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
-    // }
-    // Here you can also add other constraints or change parameters
-    // towrparams.constraints_.push_back(Parameters::BaseRom);
-    // increases optimization time, but sometimes helps find a solution for
-    // more difficult terrain.
-
-
-    // towrparams.OptimizePhaseDurations();
-    return towrparams;
-    // return 1;
+{
+  using namespace towr;
+  /**
+   * Ture and False can set whether to use the elongation constraints
+   */
+  Parameters towrparams(false); 
+  // Instead of manually defining the initial durations for each foot and
+  // step, for convenience we use a GaitGenerator with some predefined gaits
+  // for a variety of robots (walk, trot, pace, ...).
+  auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
+  auto id_gait   = static_cast<GaitGenerator::Combos>(0);
+  gait_gen_->SetCombo(id_gait);
+  double total_duration = 2.0;
+  for (int ee=0; ee<n_ee; ++ee) {
+    towrparams.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
+    towrparams.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
   }
+  // Here you can also add other constraints or change parameters
+  // towrparams.constraints_.push_back(Parameters::BaseRom);
+  // increases optimization time, but sometimes helps find a solution for
+  // more difficult terrain.
+
+#ifdef OPTMIZE_DURATION
+    towrparams.OptimizePhaseDurations();
+#endif
+  return towrparams;
+}
 
 
 class pyterrain : public towr::HeightMap {
@@ -206,20 +193,6 @@ Eigen::MatrixXd numpy2eigen(PyObject* np, bool tomatrix = false)
   return mf;
 }
 
-
-// Eigen::MatrixXd numpy2eigen(PyObject* np, bool tomatrix = false)
-// {
-//   PyObject* pybytes = PyObject_CallMethod(np,"tobytes",NULL); // this is a new reference thus should be cleaned
-//   PyObject* size = PyObject_GetAttrString(np,"size");
-//   int n = PyLong_AsLong(size);   
-//   char* bytes = PyBytes_AsString(pybytes); // the pointer to internal buffer, !!! should not be modified!!!
-  
-//   Eigen::Map<Eigen::VectorXd> mf( (double*)bytes,n);
-//   Py_DECREF(pybytes);
-//   Py_DECREF(size);
-//   return mf;
-// }
-
 PyObject* eigen2numpy(Eigen::VectorXd egn)
 {
   
@@ -264,7 +237,9 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
 {
   double a, b, timescale;
   PyObject *func;
-  if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+  PyObject *posture;
+  const int n_ee = 6;
+  if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func,&posture)) {
     return NULL;
   }
   using namespace towr;
@@ -276,17 +251,33 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   double robot_z = 0.45;
   // set the initial position
-  formulation.initial_base_.lin.at(kPos).z() = robot_z;
-  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-  formulation.initial_ee_W_ = nominal_stance_B;
-
-  // define the desired goal state
+    //set the initial ee position
+  if(posture == Py_None){ // None is passed, use the default value
+    auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+    formulation.initial_ee_W_ = nominal_stance_B;
+    double z_ground = 0.0;
+    std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
+                  [&](Eigen::Vector3d& p){ p.z() = z_ground; } // feet at 0 height
+    );
+    formulation.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
+  }else{
+    PyObject *stancePos;
+    double bodyHeight;
+    if (!PyArg_ParseTuple(args, "dO", &bodyHeight, &stancePos)) {
+      return NULL;
+    }
+    towr::KinematicModel::EEPos init_ee_W;
+    Eigen::Matrix<double, n_ee,3 > ee_W_mat = numpy2eigen(stancePos,true);
+    for(int i = 0;i<n_ee;i++){
+      init_ee_W.push_back(ee_W_mat.row(i) );
+    }
+    formulation.initial_ee_W_ = init_ee_W;
+    formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
+  }
+  // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
 
-  int n_ee=6;
   formulation.params_ = GetTowrParameters(n_ee);
-
-  SetTowrInitialState(formulation);
 
   ifopt::Problem nlp;
   SplineHolder solution;
@@ -316,21 +307,18 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *  target pos y
    *  output time scale
    *  terrian call back function
-   *  init value dict {variable_name(pystring) : value(pylist)}
    *  Posture: a tuple: (body height, stance pos)
    *      stancePos: the init positure of the robot(init EE positions in global cordinate sys), should be a 6*3 numpy array. 
    *      None if the norminal_stance(defined in the robot model) is to be used
+   *  init value dict {variable_name(pystring) : value(pylist)}
    */
   double a, b, timescale;
   PyObject *func;
   PyObject *initmap;
   PyObject *posture;
-  if (!PyArg_ParseTuple(args, "dddOOO", &a, &b, &timescale, &func, &initmap, &posture)) {
+  if (!PyArg_ParseTuple(args, "dddOOO", &a, &b, &timescale, &func, &posture , &initmap)) {
     return NULL;
   }
-  // if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func, &initmap)) {
-  //   return NULL;
-  // }
   const int n_ee=6;
   using namespace towr;
   std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
@@ -368,13 +356,8 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   }
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
-  // formulation.final_base_.ang.at(towr::kPos) << 0, 0, 1.57;
 
-  
-  // formulation.params_ = GetTowrParameters(n_ee);
   formulation.params_ = GetTowrParameters(n_ee);
-
-  // SetTowrInitialState(formulation);
 
   // Initialize the nonlinear-programming problem with the variables,
   // constraints and costs.
@@ -438,10 +421,6 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 
   double t = 0.0;
   while (t<=solution.base_linear_->GetTotalTime() + 1e-5) {
-    // cout << "t=" << t << "\n";
-    // cout << "Base linear position x,y,z:   \t";
-    // cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]" << endl;
-    // PyList_Append(res,eigenwrapper(solution.base_linear_->GetPoint(t).p()));
     PyObject* basePos = eigenwrapper(solution.base_linear_->GetPoint(t).p());
     // cout << "Base Euler roll, pitch, yaw:  \t";
     // Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
@@ -453,7 +432,6 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
       // cout << "Foot position x,y,z:          \t";
       // cout << solution.ee_motion_.at(0)->GetPoint(t).p().transpose() << "\t[m]" << endl;
       PyObject* footposition = eigenwrapper(solution.ee_motion_.at(i)->GetPoint(t).p());
-
       // cout << "Contact force x,y,z:          \t";
       // cout << solution.ee_force_.at(0)->GetPoint(t).p().transpose() << "\t[N]" << endl;
 

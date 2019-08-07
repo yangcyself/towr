@@ -9,5 +9,6 @@
 #include <towr/variables/nodes_variables_all.h>
 
 #define LOCKDIM // whether to lock the x,y dimention of the hexpods body
+// #define OPTMIZE_DURATION // whether to optimize the duration(change the phase and gait)
 extern void sample_run(int a, int b);
 
