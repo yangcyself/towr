@@ -100,6 +100,8 @@ debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserComman
                                   double Ixy, double Ixz, double Iyz,
                                   int ee_count)
 
+目前我并不知道这些Ixx等等东西什么意思, 但是反正我们已经把dynamic constraint去掉了,这个重要嘛?
+
 #### 搜索参数
 见[parameter.cc](../../towr/src/parameters.cc)
 
@@ -118,7 +120,10 @@ debug 的时候,程序的入口是:towr_ros/src/towr_ros_interface.cc UserComman
   bound_phase_duration_ = std::make_pair(0.2, 1.0);  // used only when optimizing phase durations, so gait
 
 ```
-这些我都没有改过, 但是后面可能有用
+这些我没有全都改过, 但是后面可能有用.
+
+**dt** 及其有用!
+比如某一个试验中, 中间有一个柱子, 但是搜到的结果机器人直接就过去了, 是因为那个柱子太小了，而constraint的dt太大了，直接给忽略过去了
 
 #### 步态
 步态除了决定几个脚一起走之外, 还决定了步数, 所以要改长距离的移动一定要改变步态 (或者如果为了方便的话可以换一种方式), 但是目前, 步态的步数是在[hexaped_gait_generator.cc](../../towr/src/hexaped_gait_generator.cc)里面设置好的
@@ -140,3 +145,27 @@ HexapedGaitGenerator::SetCombo (Combos combo)
 auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
   gait_gen_->SetCombo(towr::GaitGenerator::C0);
 ```
+
+
+# 目前仍然存在的问题
+
+## 搜索结果往柱子里面搜索
+见如下代码设置
+```py
+def terrain(x,y):
+    if(0.8<x<1.2 and -0.2<y<0.2):
+    # if(0.7<x<1.3 and -0.3<y<0.3):
+        # print("#####CALLEDME#######")
+        return 10
+    else:
+        return 0
+pos,cost,varDict = pytowr.run(2.,0.,0.01, terrain,None,{}) # target x, target y, time scale of the return list
+```
+是一个中间有一个大柱子的地图, 按理来说机器人应该选择绕过去,但是知道目前的版本, 如果柱子比较大(下面那行`if(0.7<x<1.3 and -0.3<y<0.3):`)机器人会找不到解, 如果柱子比较小(`if(0.8<x<1.2 and -0.2<y<0.2):`),机器人会找到一个错误的解,(哪怕dt调得很小)
+
+# 最后, 加油!
+进一步的实验上手, 可以参考[锁定XY实验过程与结果.md](锁定XY实验过程与结果.md), 里面详细的分析以及实验过程
+
+如果有任何问题, 请在github上面提issue
+
+如果有好的代码改动, 请在github上面提pull request

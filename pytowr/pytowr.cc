@@ -133,6 +133,14 @@ towr::Parameters GetTowrParameters(int n_ee)
   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Force), c.end()); //delete the Dynamic constraints 
 #endif
 
+  /**
+   * Set the dt can be important! if a obstacle is too small, and dt is too large
+   *  the obstacle can be ignored
+   */
+  // towrparams.dt_constraint_base_motion_ /= 256.;
+  // towrparams.dt_constraint_range_of_motion_ /= 256.;
+  // towrparams.dt_constraint_dynamic_ /= 256.;
+
   // Instead of manually defining the initial durations for each foot and
   // step, for convenience we use a GaitGenerator with some predefined gaits
   // for a variety of robots (walk, trot, pace, ...).

@@ -34,7 +34,7 @@ import pytowr
 pytowr.sample_run(1,2) # runs the trajectory search of monoped on flat plane.
 
 terrain = lambda x,y: 0.0 # the terrain function
-pos, cost = pytowr.run(5.,0.,0.1, terrain) # target x, target y, time scale of the return list
+pos, cost, varDict = pytowr.run(5.,0.,0.1, terrain,None,{}) # target x, target y, time scale of the return list, initial Posture, initial value dict
 print("cost",cost)
 def showtime(i):
     a = pos[i]
@@ -42,6 +42,10 @@ def showtime(i):
     foots = a[3]
     for f,p in enumerate(foots):
         print( f, p ) # (position of foot point, is_contacting_ground)
+def raw2numpy(b, m,n):
+    return np.frombuffer(b)
+varDict = {k:raw2numpy(*v) for k,v in varDict.items()}
+
 ```
 
 # Blue_Towr
