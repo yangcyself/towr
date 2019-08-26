@@ -4,3 +4,11 @@ towr/.vscode/*
 towr/test.out
 pytowr/build/temp.linux-x86_64-3.5/pytowr.o
 pytowr/pytowr.cpython-35m-x86_64-linux-gnu.so
+pytowr/*.pkl
+pytowr/doc/vrepPlayGround/*.pkl
+pytowr/doc/vrepPlayGround/remoteApi.dll
+pytowr/doc/vrepPlayGround/vrep.py
+pytowr/doc/vrepPlayGround/vrepConst.py
+pytowr/doc/vrepPlayGround/.ipynb_checkpoints/pytowrAPI-checkpoint.ipynb
+pytowr/__pycache__/*
+pytowr/pytowr.c*

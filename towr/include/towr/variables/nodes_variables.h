@@ -203,6 +203,14 @@ public:
   void AddFinalBound(Dx deriv, const std::vector<int>& dimensions,
                      const VectorXd& val);
 
+  /**[YCY] added
+   * @brief Lock some dimention of all nodes in the spline
+   * @param deriv   The derivative of the node to set.
+   * @param dim     The dimension of the node to bound.
+   * @param val     The whole values of all variables to be bound to.
+   */
+  void LockBound(Dx deriv,int dim ,const VectorXd& val);
+  
 protected:
   /**
    * @param n_dim  The number of dimensions (x,y,..) each node has.
@@ -237,6 +245,8 @@ private:
    * @param value     The value to set the bounds to.
    */
   void AddBound(const NodeValueInfo& node_info, double value);
+
+  
 };
 
 } /* namespace towr */

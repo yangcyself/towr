@@ -63,7 +63,7 @@ public:
   Parameters GetTowrParameters(int n_ee, const TowrCommandMsg& msg) const override
   {
     bool useElongConstraint = false;
-    if(n_ee ==6) // use the hexpod
+    if(n_ee ==6) // use the hexpod [YCY]
       useElongConstraint = true;
     Parameters params(useElongConstraint);
 

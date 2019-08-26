@@ -15,7 +15,9 @@ setup(name='sample',
                   libraries = ['ifopt_ipopt' ,'ifopt_core',"towr"],
                   extra_link_args = ['-rdynamic'],
                   extra_compile_args = ["-std=c++11"],
+                  depends = ["pytowr.cc","pytowr.h"]
                   )
+
         ]
 )  
 

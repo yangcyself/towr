@@ -1,4 +1,5 @@
 /******************************************************************************
+Copyright (c) 2019, YangChenyu TianChangda Gaoyue. All rights reserved. [YCY]
 Copyright (c) 2018, Alexander W. Winkler. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

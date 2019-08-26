@@ -42,7 +42,7 @@ add_library(${PROJECT_NAME} SHARED
   src/total_duration_constraint.cc
   src/dynamic_constraint.cc
   src/range_of_motion_constraint.cc
-  src/range_of_elongation_constraint.cc
+  src/range_of_elongation_constraint.cc #[YCY]
   src/spline_acc_constraint.cc
   src/linear_constraint.cc
   # costs
@@ -53,7 +53,7 @@ add_library(${PROJECT_NAME} SHARED
   src/monoped_gait_generator.cc
   src/biped_gait_generator.cc
   src/quadruped_gait_generator.cc
-  src/hexaped_gait_generator.cc
+  src/hexaped_gait_generator.cc #[YCY]
   # terrain
   src/height_map_examples.cc
   src/height_map.cc
