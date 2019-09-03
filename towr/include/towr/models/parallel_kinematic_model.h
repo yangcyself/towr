@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2019, YangChenyu TianChangda Gaoyue. All rights reserved.
+Copyright (c) 2019, YangChenyu TianChangda Gaoyue. All rights reserved. [YCY]
 
 Copyright (c) 2018, Alexander W. Winkler. All rights reserved.
 

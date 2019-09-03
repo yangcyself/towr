@@ -57,7 +57,7 @@ RobotModel::RobotModel(Robot robot)
       dynamic_model_   = std::make_shared<AnymalDynamicModel>();
       kinematic_model_ = std::make_shared<AnymalKinematicModel>();
       break;
-    case Hexpod:
+    case Hexpod: //[YCY]
       dynamic_model_   = std::make_shared<HexpodDynamicModel>();
       kinematic_model_ = std::make_shared<HexpodKinematicModel>();
       break;

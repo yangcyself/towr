@@ -216,7 +216,7 @@ NlpFormulation::GetConstraint (Parameters::ConstraintName name,
   switch (name) {
     case Parameters::Dynamic:        return MakeDynamicConstraint(s);
     case Parameters::EndeffectorRom: return MakeRangeOfMotionBoxConstraint(s);
-    case Parameters::EEMotorRange:   return MakeRangeOfElongationConstraint(s);
+    case Parameters::EEMotorRange:   return MakeRangeOfElongationConstraint(s);//[YCY]
     case Parameters::BaseRom:        return MakeBaseRangeOfMotionConstraint(s);
     case Parameters::TotalTime:      return MakeTotalTimeConstraint();
     case Parameters::Terrain:        return MakeTerrainConstraint();
@@ -264,7 +264,7 @@ NlpFormulation::MakeRangeOfMotionBoxConstraint (const SplineHolder& s) const
 }
 
 NlpFormulation::ContraintPtrVec
-NlpFormulation::MakeRangeOfElongationConstraint (const SplineHolder& s) const
+NlpFormulation::MakeRangeOfElongationConstraint (const SplineHolder& s) const //[YCY]
 {
   ContraintPtrVec c;
 

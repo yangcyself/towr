@@ -65,7 +65,7 @@ private:
   void SetCombo(Combos combo) override;
 
 
-  // naming convention:, where the circle is is contact, front is right ->.
+  // naming convention:, where the circle is in contact, front is right ->.
   // so RF and LH in contact is (Pb):  o .
   //                                   . o
   // flight-phase

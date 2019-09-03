@@ -8,14 +8,16 @@ setup(name='sample',
       ext_modules=[
         Extension('pytowr',
                   ['pytowr.cc'],
-                  include_dirs = ['/home/yangcy/programs/towr/towr/include','/usr/local/include', '/usr/local/include/eigen3'],
+                  include_dirs = ['/home/dada/catkin_ws/src/towr/towr/include','/usr/local/include', '/usr/include/eigen3'],
                 #   define_macros = [('FOO','1')],
                 #   undef_macros = ['BAR'],
-                  library_dirs = ['/home/yangcy/programs/towr/towr/build'],#,'/usr/local/lib'],
+                  library_dirs = ['/home/dada/catkin_ws/src/towr/towr/build','/usr/local/lib'],
                   libraries = ['ifopt_ipopt' ,'ifopt_core',"towr"],
                   extra_link_args = ['-rdynamic'],
                   extra_compile_args = ["-std=c++11"],
+                  depends = ["pytowr.cc","pytowr.h"]
                   )
+
         ]
 )  
 

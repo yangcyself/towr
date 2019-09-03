@@ -48,7 +48,7 @@ GaitGenerator::MakeGaitGenerator(int leg_count)
     case 1: return std::make_shared<MonopedGaitGenerator>();   break;
     case 2: return std::make_shared<BipedGaitGenerator>();     break;
     case 4: return std::make_shared<QuadrupedGaitGenerator>(); break;
-    case 6: return std::make_shared<HexapedGaitGenerator>(); break;
+    case 6: return std::make_shared<HexapedGaitGenerator>(); break; //[YCY]
     default: assert(false); break; // Error: Not implemented
   }
 }

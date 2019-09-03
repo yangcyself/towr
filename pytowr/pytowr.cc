@@ -116,39 +116,52 @@ void SetTowrInitialState(towr::NlpFormulation &formulation_)
 }
 
 towr::Parameters GetTowrParameters(int n_ee) 
-// int GetTowrParameters(int n_ee, towr::NlpFormulation &formulation_) 
+{
+  using namespace towr;
+  /**
+   * Ture and False can set whether to use the elongation constraints
+   */
+#ifdef BOX_CONSTRAINT
+  Parameters towrparams(false);
+#else
+  Parameters towrparams(true);
+#endif
 
-  {
-    using namespace towr;
-    Parameters towrparams(false);
-    // Parameters a = Parameters();
+#ifndef DYNAMIC_CONSTRAINT
+  auto &c = towrparams.constraints_;
+  c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Dynamic), c.end()); //delete the Dynamic constraints 
+  c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Force), c.end()); //delete the Dynamic constraints 
+#endif
 
-    // Parameters a = Parameters();
+  /**
+   * Set the dt can be important! if a obstacle is too small, and dt is too large
+   *  the obstacle can be ignored
+   */
+  // towrparams.dt_constraint_base_motion_ /= 256.;
+  // towrparams.dt_constraint_range_of_motion_ /= 256.;
+  // towrparams.dt_constraint_dynamic_ /= 256.;
 
-
-    // Instead of manually defining the initial durations for each foot and
-    // step, for convenience we use a GaitGenerator with some predefined gaits
-    // for a variety of robots (walk, trot, pace, ...).
-    auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
-    auto id_gait   = static_cast<GaitGenerator::Combos>(0);
-    gait_gen_->SetCombo(id_gait);
-    double total_duration = 2.0;
-    for (int ee=0; ee<n_ee; ++ee) {
-      towrparams.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
-      towrparams.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
-    }
-    // for (int ee=0; ee<n_ee; ++ee) {
-    //   formulation_.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
-    //   formulation_.params_.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
-    // }
-    // Here you can also add other constraints or change parameters
-    // towrparams.constraints_.push_back(Parameters::BaseRom);
-    // increases optimization time, but sometimes helps find a solution for
-    // more difficult terrain.
-    
-    return towrparams;
-    // return 1;
+  // Instead of manually defining the initial durations for each foot and
+  // step, for convenience we use a GaitGenerator with some predefined gaits
+  // for a variety of robots (walk, trot, pace, ...).
+  auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
+  auto id_gait   = static_cast<GaitGenerator::Combos>(0);
+  gait_gen_->SetCombo(id_gait);
+  double total_duration = 2.0;
+  for (int ee=0; ee<n_ee; ++ee) {
+    towrparams.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
+    towrparams.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
   }
+  // Here you can also add other constraints or change parameters
+  // towrparams.constraints_.push_back(Parameters::BaseRom);
+  // increases optimization time, but sometimes helps find a solution for
+  // more difficult terrain.
+
+#ifdef OPTMIZE_DURATION
+    towrparams.OptimizePhaseDurations();
+#endif
+  return towrparams;
+}
 
 
 class pyterrain : public towr::HeightMap {
@@ -165,7 +178,7 @@ public:
       std::cout<<"cannot parse the height returned from call back"<<std::endl;
       Py_DECREF(arglist);
       Py_DECREF(result);
-      return NULL;
+      return 0.0;
     }
     Py_DECREF(arglist);
     Py_DECREF(result);
@@ -175,25 +188,77 @@ private:
   PyObject *terrainCallback;
 };
 
+
+/**
+ * conver an numpy array to eigen vector or matrix
+ */
+Eigen::MatrixXd numpy2eigen(PyObject* np, bool tomatrix = false)
+{
+  PyObject* pybytes = PyObject_CallMethod(np,"tobytes",NULL); // this is a new reference thus should be cleaned
+  char* bytes = PyBytes_AsString(pybytes); // the pointer to internal buffer, !!! should not be modified!!!
+  int m,n;
+  if(tomatrix){
+    PyObject* shape = PyObject_GetAttrString(np,"shape");
+    PyArg_ParseTuple(shape, "ii", &m, &n);
+    Py_DECREF(shape);
+  }else{
+    PyObject* size = PyObject_GetAttrString(np,"size");
+    m = PyLong_AsLong(size);   
+    n = 1;
+    Py_DECREF(size);
+  }
+  Eigen::Map<Eigen::Matrix <double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > mf( (double*)bytes,m,n);
+  Py_DECREF(pybytes);
+  return mf;
+}
+
+PyObject* eigen2numpy(Eigen::VectorXd egn)
+{
+  
+  double* v = egn.data();
+  PyObject* bytes = PyBytes_FromStringAndSize((char*)v,egn.size()*sizeof(double)); // It seems that I do not know how to import numpy module
+  return Py_BuildValue("(Oii)",bytes, egn.rows(),egn.cols());
+}
+
 static PyObject *py_test_callback(PyObject *self, PyObject *args) {
-  PyObject *func;
-  if (!PyArg_ParseTuple(args, "O",&func)) {
+  // PyObject *func;
+  // if (!PyArg_ParseTuple(args, "O",&func)) {
+  //   return NULL;
+  // }
+  // if (!PyCallable_Check(func)) {
+  //     PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+  //     return NULL;
+  // }
+  // using namespace towr;
+  // auto terrain = std::make_shared<pyterrain>(func);
+  // terrain->GetHeight(0,0);
+  // return Py_None;
+  PyObject *np;
+  if (!PyArg_ParseTuple(args, "O",&np)) {
     return NULL;
   }
-  if (!PyCallable_Check(func)) {
-      PyErr_SetString(PyExc_TypeError, "parameter must be callable");
-      return NULL;
-  }
-  using namespace towr;
-  auto terrain = std::make_shared<pyterrain>(func);
-  terrain->GetHeight(0,0);
+  std::cout<<numpy2eigen(np) <<std::endl;
   return Py_None;
 }
 
-static PyObject *py_run(PyObject *self, PyObject *args) {
+
+const char* variableNames[] = {"base-lin", "base-ang",  // this should be const, otherwise it yield warning
+                        "ee-motion_0", "ee-force_0", 
+                        "ee-motion_1", "ee-force_1", 
+                        "ee-motion_2", "ee-force_2", 
+                        "ee-motion_3", "ee-force_3", 
+                        "ee-motion_4", "ee-force_4", 
+                        "ee-motion_5", "ee-force_5"};
+/**
+ * Same with the py_run except that this does not actually calculate a solution, it just returns the init value
+ */
+static PyObject *py_initValues(PyObject *self, PyObject *args) 
+{
   double a, b, timescale;
   PyObject *func;
-  if (!PyArg_ParseTuple(args, "dddO", &a, &b, &timescale, &func)) {
+  PyObject *posture;
+  const int n_ee = 6;
+  if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func,&posture)) {
     return NULL;
   }
   using namespace towr;
@@ -201,26 +266,38 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   NlpFormulation formulation;
 
   // terrain
-  // formulation.terrain_ = std::make_shared<FlatGround>(0.0);
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   double robot_z = 0.45;
-  // set the initial position of the hopper
-  formulation.initial_base_.lin.at(kPos).z() = robot_z;
-  auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
-  formulation.initial_ee_W_ = nominal_stance_B;
-
-  // // define the desired goal state of the hopper
+  // set the initial position
+    //set the initial ee position
+  if(posture == Py_None){ // None is passed, use the default value
+    auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+    formulation.initial_ee_W_ = nominal_stance_B;
+    double z_ground = 0.0;
+    std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
+                  [&](Eigen::Vector3d& p){ p.z() = z_ground; } // feet at 0 height
+    );
+    formulation.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
+  }else{
+    PyObject *stancePos;
+    double bodyHeight;
+    if (!PyArg_ParseTuple(args, "dO", &bodyHeight, &stancePos)) {
+      return NULL;
+    }
+    towr::KinematicModel::EEPos init_ee_W;
+    Eigen::Matrix<double, n_ee,3 > ee_W_mat = numpy2eigen(stancePos,true);
+    for(int i = 0;i<n_ee;i++){
+      init_ee_W.push_back(ee_W_mat.row(i) );
+    }
+    formulation.initial_ee_W_ = init_ee_W;
+    formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
+  }
+  // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
 
-  int n_ee=6;
-  // formulation.params_ = GetTowrParameters(n_ee);
   formulation.params_ = GetTowrParameters(n_ee);
 
-  SetTowrInitialState(formulation);
-
-  // Initialize the nonlinear-programming problem with the variables,
-  // constraints and costs.
   ifopt::Problem nlp;
   SplineHolder solution;
   for (auto c : formulation.GetVariableSets(solution))
@@ -229,6 +306,124 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     nlp.AddConstraintSet(c);
   for (auto c : formulation.GetCosts())
     nlp.AddCostSet(c);
+
+  PyObject *variableDict = PyDict_New();
+
+  ifopt::Composite::Ptr VariablePtr = nlp.GetOptVariables();
+  for (auto varstr : variableNames ){
+    // std::cout<<"varstr: "<<varstr<<std::endl;
+    ifopt::Component::Ptr componentPtr = VariablePtr -> GetComponent(varstr);
+    PyDict_SetItemString(variableDict, varstr, eigen2numpy(componentPtr->GetValues()));
+  }
+  return variableDict;
+}
+
+
+static PyObject *py_run(PyObject *self, PyObject *args) {
+  /**
+   * input:
+   *  target pos x
+   *  target pos y
+   *  output time scale
+   *  terrian call back function
+   *  Posture: a tuple: (body height, stance pos)
+   *      stancePos: the init positure of the robot(init EE positions in global cordinate sys), should be a 6*3 numpy array. 
+   *      None if the norminal_stance(defined in the robot model) is to be used
+   *  init value dict {variable_name(pystring) : value(pylist)}
+   */
+  double a, b, timescale;
+  PyObject *func;
+  PyObject *initmap;
+  PyObject *posture;
+  if (!PyArg_ParseTuple(args, "dddOOO", &a, &b, &timescale, &func, &posture , &initmap)) {
+    return NULL;
+  }
+  const int n_ee=6;
+  using namespace towr;
+  std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
+  NlpFormulation formulation;
+
+  // terrain
+  // formulation.terrain_ = std::make_shared<FlatGround>(0.0);
+  formulation.terrain_ = std::make_shared<pyterrain>(func);
+  formulation.model_ = RobotModel(RobotModel::Hexpod);
+  
+  double robot_z = 0.45;
+
+  //set the initial ee position
+  if(posture == Py_None){ // None is passed, use the default value
+    auto nominal_stance_B = formulation.model_.kinematic_model_->GetNominalStanceInBase();
+    formulation.initial_ee_W_ = nominal_stance_B;
+    double z_ground = 0.0;
+    std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
+                  [&](Eigen::Vector3d& p){ p.z() = z_ground; } // feet at 0 height
+    );
+    formulation.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
+  }else{
+    PyObject *stancePos;
+    double bodyHeight;
+    if (!PyArg_ParseTuple(args, "dO", &bodyHeight, &stancePos)) {
+      return NULL;
+    }
+    towr::KinematicModel::EEPos init_ee_W;
+    Eigen::Matrix<double, n_ee,3 > ee_W_mat = numpy2eigen(stancePos,true);
+    for(int i = 0;i<n_ee;i++){
+      init_ee_W.push_back(ee_W_mat.row(i) );
+    }
+    formulation.initial_ee_W_ = init_ee_W;
+    formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
+  }
+  // // define the desired goal state
+  formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
+
+  formulation.params_ = GetTowrParameters(n_ee);
+
+  // Initialize the nonlinear-programming problem with the variables,
+  // constraints and costs.
+  /**
+   * 这里的一个variable 是一个 NodesVariablesAll
+   * 它的父类一路上去是 towr::NodesVariables -> ifopt::VariableSet -> ifopt::Component (composite是component的另一个子类,不知道和variable set有什么区别)
+   */
+  ifopt::Problem nlp;
+  SplineHolder solution;
+  for (auto c : formulation.GetVariableSets(solution))
+    nlp.AddVariableSet(c);
+  for (auto c : formulation.GetConstraints(solution))
+    nlp.AddConstraintSet(c);
+  for (auto c : formulation.GetCosts())
+    nlp.AddCostSet(c);
+
+  /**
+   * Update the variables
+   */ 
+  ifopt::Composite::Ptr VariablePtr = nlp.GetOptVariables();
+  PyObject *key, *value;
+  Py_ssize_t pos = 0;
+  // std::cout<<"before init"<<std::endl;
+  while (PyDict_Next(initmap, &pos, &key, &value)) {
+    key = PyUnicode_AsUTF8String(key);
+    std::string valName = std::string( PyBytes_AsString(key) );
+    std::cout<<"key: "<<valName<<std::endl;
+    ifopt::Component::Ptr compoPtr = VariablePtr -> GetComponent(valName);
+    compoPtr -> SetVariables( numpy2eigen(value) );
+  }
+  
+  /**
+   * Bound x,y,z
+   * Get the meaning of index via GetNodeValuesInfo
+   * Each info is a struct containing the following attributes
+   *  int id_;   ///< ID of the associated node (0 =< id < number of nodes in spline).
+   *  Dx deriv_; ///< Derivative (pos,vel) of the node with that ID.
+   *  int dim_;  ///< Dimension (x,y,z) of that derivative.
+   */
+#ifdef LOCKDIM
+  std::shared_ptr<ifopt::Component> basecompon = VariablePtr -> GetComponent("base-lin");
+  towr::NodesVariablesAll::Ptr BaselinPtr = std::dynamic_pointer_cast<towr::NodesVariables>(basecompon);
+  Eigen::VectorXd baseVariables = BaselinPtr->GetValues(); //Need to cast from Component to NodesVariablesAll
+  for(auto deriv : {towr::kPos} ) // can have `towr::kVel` if you also want to lock velocity
+    for(auto dim : {0,1} ) // Bound the x,y dimension
+      BaselinPtr->LockBound(deriv,dim,baseVariables);
+#endif
 
   auto solver = std::make_shared<ifopt::IpoptSolver>();
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
@@ -245,13 +440,9 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 
   double t = 0.0;
   while (t<=solution.base_linear_->GetTotalTime() + 1e-5) {
-    // cout << "t=" << t << "\n";
-    // cout << "Base linear position x,y,z:   \t";
-    cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]" << endl;
-    // PyList_Append(res,eigenwrapper(solution.base_linear_->GetPoint(t).p()));
     PyObject* basePos = eigenwrapper(solution.base_linear_->GetPoint(t).p());
     // cout << "Base Euler roll, pitch, yaw:  \t";
-    Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
+    // Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
     // cout << (rad/M_PI*180).transpose() << "\t[deg]" << endl;
     PyObject* baseEuler = eigenwrapper(solution.base_angular_->GetPoint(t).p());
 
@@ -260,7 +451,6 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
       // cout << "Foot position x,y,z:          \t";
       // cout << solution.ee_motion_.at(0)->GetPoint(t).p().transpose() << "\t[m]" << endl;
       PyObject* footposition = eigenwrapper(solution.ee_motion_.at(i)->GetPoint(t).p());
-
       // cout << "Contact force x,y,z:          \t";
       // cout << solution.ee_force_.at(0)->GetPoint(t).p().transpose() << "\t[N]" << endl;
 
@@ -282,8 +472,20 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   }
 
   int solve_cost = nlp.GetIterationCount();
+
+  /**
+   * Build a dict to return the final variables
+   */
+  PyObject *variableDict = PyDict_New();
+  
+  for (auto varstr : variableNames ){
+    // std::cout<<"varstr: "<<varstr<<std::endl;
+    ifopt::Component::Ptr componentPtr = VariablePtr -> GetComponent(varstr);
+    PyDict_SetItemString(variableDict, varstr, eigen2numpy(componentPtr->GetValues()));
+  }
+    
   // return res;
-  return Py_BuildValue("(Oi)",res,solve_cost);
+  return Py_BuildValue("(OiO)",res,solve_cost,variableDict);
 }
 
 
@@ -294,6 +496,7 @@ static PyMethodDef PytowrMethods[] = {
   {"sample_run", py_sample_run, METH_VARARGS, "run the optimization of a monoped"}, // copid from tutorial
   {"run", py_run, METH_VARARGS, "the most import function for the hexpod"}, // copid from tutorial
   {"test_callback", py_test_callback, METH_VARARGS, "test the call back function implementation, for debug use"}, // copid from tutorial
+  {"initValues", py_initValues, METH_VARARGS, "return the initvalues of the variables"}, // copid from tutorial
   { NULL, NULL, 0, NULL}
 };
 
@@ -310,6 +513,6 @@ static struct PyModuleDef pytowrmodule = {
 /* Module initialization function */
 PyMODINIT_FUNC
 PyInit_pytowr(void) {
-  printf("hahaha I'm Initialized\n");
+  printf("Pytowr Initialized\n");
   return PyModule_Create(&pytowrmodule);
 }

@@ -1,4 +1,5 @@
 /******************************************************************************
+Copyright (c) 2019, YangChenyu TianChangda Gaoyue. All rights reserved. [YCY]
 Copyright (c) 2018, Alexander W. Winkler. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,19 +50,28 @@ private:
 
   GaitInfo GetStrideStand() const;
   GaitInfo GetStrideFlight() const;
-  GaitInfo GetStrideWalk() const;
+  GaitInfo Get33Walk() const;
+  GaitInfo Get24Walk() const;
 
   void SetCombo(Combos combo) override;
 
 
-  // naming convention:, where the circle is is contact, front is right ->.
+  // naming convention:, where the circle is in contact, front is right ->.
   // so RA LB and RC in contact is (TTR):   o  .
   //                                      .      o  
   //                                        o  .
   // flight-phase
   ContactState II_; 
-  ContactState TT_L;
-  ContactState TT_R;
+
+  // 3-3 gait
+  ContactState TT_L;  //LA, LC, RB
+  ContactState TT_R;  //RA, RC, LB
+
+  //2-4 gait
+  ContactState TF_A; // LA, RA swing
+  ContactState TF_B; //LB, RB  swing
+  ContactState TF_C; //LC, RC  swing
+
   // stance-phase
   ContactState BB_;
 };

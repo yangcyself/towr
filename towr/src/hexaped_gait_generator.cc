@@ -1,4 +1,5 @@
 /******************************************************************************
+Copyright (c) 2019, YangChenyu TianChangda Gaoyue. All rights reserved. [YCY]
 Copyright (c) 2018, Alexander W. Winkler. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,10 +41,21 @@ HexapedGaitGenerator::HexapedGaitGenerator ()
 {
   int n_ee = 6;
   ContactState init(n_ee, false);
-  II_ = TT_R = TT_L = BB_ = init;
+  II_ = init;
+  TT_R = TT_L = init;
+  TF_A = TF_B = TF_C = init;
+  BB_ = init;
 
-  TT_R.at(RA) = true; TT_R.at(LB) = true; TT_R.at(RC) = true;
-  TT_L.at(LA) = true; TT_L.at(RB) = true; TT_L.at(LC) = true;
+  // 3-3 gait
+  TT_R.at(LA) = true; TT_R.at(RB) = true; TT_R.at(LC) = true;
+  TT_L.at(RA) = true; TT_L.at(LB) = true; TT_L.at(RC) = true;
+
+  // 2-4 gait
+  TF_A.at(LB) = true; TF_A.at(RB) = true; TF_A.at(LC) = true; TF_A.at(RC) = true;
+  TF_B.at(LA) = true; TF_B.at(RA) = true; TF_B.at(LC) = true; TF_B.at(RC) = true;
+  TF_C.at(LB) = true; TF_C.at(RB) = true; TF_C.at(LA) = true; TF_C.at(RA) = true;
+
+
   BB_ = ContactState(n_ee, true);
 
   SetGaits({Stand});
@@ -54,6 +66,7 @@ HexapedGaitGenerator::SetCombo (Combos combo)
 {
   switch (combo) {
     case C0: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Stand}); break;
+    case C1: SetGaits({Stand, Walk2, Walk2, Walk2, Walk2, Stand}); break;
     default: assert(false); std::cout << "Gait not defined\n"; break;
   }
 }
@@ -64,7 +77,8 @@ HexapedGaitGenerator::GetGait (Gaits gait) const
   switch (gait) {
     case Stand:   return GetStrideStand();
     case Flight:  return GetStrideFlight();
-    case Walk1:   return GetStrideWalk();
+    case Walk1:   return Get33Walk();
+    case Walk2:   return Get24Walk();
     default: assert(false); // gait not implemented
   }
 }
@@ -100,7 +114,7 @@ HexapedGaitGenerator::GetStrideFlight () const
 }
 
 HexapedGaitGenerator::GaitInfo
-HexapedGaitGenerator::GetStrideWalk () const
+HexapedGaitGenerator::Get33Walk () const
 {
   double step = 0.3;
   double stance = 0.05;
@@ -117,6 +131,28 @@ HexapedGaitGenerator::GetStrideWalk () const
 
   return std::make_pair(times, phase_contacts);
 }
+
+HexapedGaitGenerator::GaitInfo
+HexapedGaitGenerator::Get24Walk () const
+{
+  double step = 0.3;
+  double stance = 0.05;
+  auto times =
+  {
+      step, stance,
+      step, stance,
+      step, stance,
+  };
+  auto phase_contacts =
+  {
+      TF_A, BB_, // swing front foot
+      TF_B, BB_, // swing middle foot
+      TF_C, BB_, // swing back foot
+  };
+
+  return std::make_pair(times, phase_contacts);
+}
+
 
 
 

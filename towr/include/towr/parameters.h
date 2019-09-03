@@ -162,7 +162,7 @@ public:
   /**
    * @brief Default parameters to get started.
    */
-  Parameters(bool useElongConstraint = false);
+  Parameters(bool useElongConstraint = false); //[YCY] added useElongConstraint arguemnt
   virtual ~Parameters() = default;
 
   /// Number and initial duration of each foot's swing and stance phases.
