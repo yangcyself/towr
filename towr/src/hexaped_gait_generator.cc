@@ -66,7 +66,7 @@ HexapedGaitGenerator::SetCombo (Combos combo)
 {
   switch (combo) {
     case C0: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Stand}); break;
-    case C1: SetGaits({Stand, Walk2, Walk2, Walk2, Walk2, Stand}); break;
+    case C1: SetGaits({Stand, Walk2, Walk2, Walk2, Walk2E, Stand}); break;
     default: assert(false); std::cout << "Gait not defined\n"; break;
   }
 }
@@ -79,6 +79,7 @@ HexapedGaitGenerator::GetGait (Gaits gait) const
     case Flight:  return GetStrideFlight();
     case Walk1:   return Get33Walk();
     case Walk2:   return Get24Walk();
+    case Walk2E:  return RemoveTransition(Get24Walk());
     default: assert(false); // gait not implemented
   }
 }
