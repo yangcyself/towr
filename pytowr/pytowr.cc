@@ -32,8 +32,8 @@ static PyObject *py_sample_run(PyObject *self, PyObject *args) {
   int n_ee=1;
   auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
 
-  gait_gen_->SetCombo(towr::GaitGenerator::C0);
-  double total_duration = 2;
+  gait_gen_->SetCombo(towr::GaitGenerator::C1);
+  double total_duration = 4;
   for (int ee=0; ee<n_ee; ++ee) {
     formulation.params_.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
     formulation.params_.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
@@ -115,7 +115,7 @@ void SetTowrInitialState(towr::NlpFormulation &formulation_)
     formulation_.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
 }
 
-towr::Parameters GetTowrParameters(int n_ee) 
+towr::Parameters GetTowrParameters(int n_ee, int gait_choice=0) 
 {
   using namespace towr;
   /**
@@ -145,9 +145,10 @@ towr::Parameters GetTowrParameters(int n_ee)
   // step, for convenience we use a GaitGenerator with some predefined gaits
   // for a variety of robots (walk, trot, pace, ...).
   auto gait_gen_ = GaitGenerator::MakeGaitGenerator(n_ee);
-  auto id_gait   = static_cast<GaitGenerator::Combos>(0);
+  auto id_gait   = static_cast<GaitGenerator::Combos>(gait_choice);
   gait_gen_->SetCombo(id_gait);
-  double total_duration = 2.0;
+  //gait_gen_ -> SetCombo(towr::GaitGenerator::C0);
+  double total_duration = 3.0;
   for (int ee=0; ee<n_ee; ++ee) {
     towrparams.ee_phase_durations_.push_back(gait_gen_->GetPhaseDurations(total_duration, ee));
     towrparams.ee_in_contact_at_start_.push_back(gait_gen_->IsInContactAtStart(ee));
@@ -254,11 +255,12 @@ const char* variableNames[] = {"base-lin", "base-ang",  // this should be const,
  */
 static PyObject *py_initValues(PyObject *self, PyObject *args) 
 {
+  int gait_choice;
   double a, b, timescale;
   PyObject *func;
   PyObject *posture;
   const int n_ee = 6;
-  if (!PyArg_ParseTuple(args, "dddOO", &a, &b, &timescale, &func,&posture)) {
+  if (!PyArg_ParseTuple(args, "idddOO", &gait_choice, &a, &b, &timescale, &func,&posture)) {
     return NULL;
   }
   using namespace towr;
@@ -296,7 +298,7 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
 
-  formulation.params_ = GetTowrParameters(n_ee);
+  formulation.params_ = GetTowrParameters(n_ee, gait_choice);
 
   ifopt::Problem nlp;
   SplineHolder solution;
@@ -322,6 +324,7 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
 static PyObject *py_run(PyObject *self, PyObject *args) {
   /**
    * input:
+   *  gait choice 
    *  target pos x
    *  target pos y
    *  output time scale
@@ -331,11 +334,12 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *      None if the norminal_stance(defined in the robot model) is to be used
    *  init value dict {variable_name(pystring) : value(pylist)}
    */
+  int gait_choice;
   double a, b, timescale;
   PyObject *func;
   PyObject *initmap;
   PyObject *posture;
-  if (!PyArg_ParseTuple(args, "dddOOO", &a, &b, &timescale, &func, &posture , &initmap)) {
+  if (!PyArg_ParseTuple(args, "idddOOO", &gait_choice, &a, &b, &timescale, &func, &posture , &initmap)) {
     return NULL;
   }
   const int n_ee=6;
@@ -376,7 +380,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
 
-  formulation.params_ = GetTowrParameters(n_ee);
+  formulation.params_ = GetTowrParameters(n_ee,gait_choice);
 
   // Initialize the nonlinear-programming problem with the variables,
   // constraints and costs.
