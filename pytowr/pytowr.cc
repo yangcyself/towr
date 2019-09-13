@@ -433,8 +433,8 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
   // solver_->SetOption("linear_solver", "mumps"); //  alot faster,
 
-  solver->SetOption("max_cpu_time", 60.0);
-  solver->SetOption("max_iter", 3000); // according to the towr_ros_app.cc
+  solver->SetOption("max_cpu_time", 10.0);
+  solver->SetOption("max_iter", 1000); // according to the towr_ros_app.cc
   solver->Solve(nlp);
 
   using namespace std;
