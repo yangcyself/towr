@@ -43,6 +43,7 @@ add_library(${PROJECT_NAME} SHARED
   src/dynamic_constraint.cc
   src/range_of_motion_constraint.cc
   src/range_of_elongation_constraint.cc #[YCY]
+  src/center_of_body_constraint.cc #[TCD]
   src/spline_acc_constraint.cc
   src/linear_constraint.cc
   # costs
