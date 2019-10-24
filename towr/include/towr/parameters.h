@@ -139,6 +139,7 @@ public:
   enum ConstraintName { Dynamic,        ///< sets DynamicConstraint
                         EndeffectorRom, ///< sets RangeOfMotionConstraint
                         EEMotorRange,//< sets RangeOfElongationConstraint
+                        BodyCenter, //<sets CenterOfBodyConstraint>
                         TotalTime,      ///< sets TotalDurationConstraint
                         Terrain,        ///< sets TerrainConstraint
                         Force,          ///< sets ForceConstraint

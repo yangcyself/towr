@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <towr/constraints/force_constraint.h>
 #include <towr/constraints/range_of_motion_constraint.h>
 #include <towr/constraints/range_of_elongation_constraint.h>
+#include <towr/constraints/center_of_body_constraint.h>
 #include <towr/constraints/swing_constraint.h>
 #include <towr/constraints/terrain_constraint.h>
 #include <towr/constraints/total_duration_constraint.h>
@@ -217,6 +218,7 @@ NlpFormulation::GetConstraint (Parameters::ConstraintName name,
     case Parameters::Dynamic:        return MakeDynamicConstraint(s);
     case Parameters::EndeffectorRom: return MakeRangeOfMotionBoxConstraint(s);
     case Parameters::EEMotorRange:   return MakeRangeOfElongationConstraint(s);//[YCY]
+    case Parameters::BodyCenter:     return MakeCenterOfBodyConstraint(s); //[TCD]
     case Parameters::BaseRom:        return MakeBaseRangeOfMotionConstraint(s);
     case Parameters::TotalTime:      return MakeTotalTimeConstraint();
     case Parameters::Terrain:        return MakeTerrainConstraint();
@@ -278,6 +280,19 @@ NlpFormulation::MakeRangeOfElongationConstraint (const SplineHolder& s) const //
   }
 
   return c;
+}
+
+NlpFormulation::ContraintPtrVec
+NlpFormulation::MakeCenterOfBodyConstraint (const SplineHolder& s) const
+{
+  ContraintPtrVec constraints;
+
+  for (int ee=0; ee<params_.GetEECount(); ee++) {
+    auto c = std::make_shared<CenterOfBodyConstraint>(terrain_, id::EEMotionNodes(ee), s);
+    constraints.push_back(c);
+  }
+
+  return constraints;
 }
 
 NlpFormulation::ContraintPtrVec
