@@ -439,7 +439,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
 
   using namespace std;
   cout.precision(2);
-  nlp.PrintCurrent(); // view variable-set, constraint violations, indices,...
+  //nlp.PrintCurrent(); // view variable-set, constraint violations, indices,...
   PyObject* res = PyList_New(0);
 
   double t = 0.0;
@@ -489,6 +489,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   }
     
   // return res;
+  
   return Py_BuildValue("(OiO)",res,solve_cost,variableDict);
 }
 
