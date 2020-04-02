@@ -13,7 +13,7 @@ terrain = lambda x,y: 10.0 if (0.8<x<1.2 and -0.2<y<0.2) else 0.0
 #         return 10
 #     else:
 #         return 0
-pos,cost,varDict = pytowr.run(1,2,1.5,0.01, terrain,None,{}) # target x, target y, time scale of the return list
+pos,cost,varDict = pytowr.run(1,2,1.5,0,0.01, terrain,None,{}) # target x, target y, time scale of the return list
 print("cost",cost)
 def showtime(i):
     a = pos[i]

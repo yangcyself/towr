@@ -327,6 +327,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *  gait choice 
    *  target pos x
    *  target pos y
+   *  target pos z
    *  output time scale
    *  terrian call back function
    *  Posture: a tuple: (body height, stance pos)
@@ -335,16 +336,16 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *  init value dict {variable_name(pystring) : value(pylist)}
    */
   int gait_choice;
-  double a, b, timescale;
+  double a, b, hz, timescale;
   PyObject *func;
   PyObject *initmap;
   PyObject *posture;
-  if (!PyArg_ParseTuple(args, "idddOOO", &gait_choice, &a, &b, &timescale, &func, &posture , &initmap)) {
+  if (!PyArg_ParseTuple(args, "iddddOOO", &gait_choice, &a, &b, &hz, &timescale, &func, &posture , &initmap)) {
     return NULL;
   }
   const int n_ee=6;
   using namespace towr;
-  std::cout<<"### TARGET:" <<a<<" "<<b<<"###"<<std::endl;
+  std::cout<<"### TARGET:" <<a<<" "<<b<<" "<<hz<<"###"<<std::endl;
   NlpFormulation formulation;
 
   // terrain
@@ -378,7 +379,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
   }
   // // define the desired goal state
-  formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z;
+  formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z+hz;
 
   formulation.params_ = GetTowrParameters(n_ee,gait_choice);
 
@@ -433,8 +434,8 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
   //solver->SetOption("linear_solver", "mumps"); //  alot faster,
 
-  solver->SetOption("max_cpu_time", 10.0);
-  solver->SetOption("max_iter", 1000); // according to the towr_ros_app.cc
+  solver->SetOption("max_cpu_time", 12.0);
+  solver->SetOption("max_iter", 1200); // according to the towr_ros_app.cc
   solver->Solve(nlp);
 
   using namespace std;
