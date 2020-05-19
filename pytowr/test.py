@@ -13,7 +13,7 @@ terrain = lambda x,y: 10.0 if (0.8<x<1.2 and -0.2<y<0.2) else 0.0
 #         return 10
 #     else:
 #         return 0
-pos,cost,varDict = pytowr.run(1,2,1.5,0,0.01, terrain,None,{}) # target x, target y, time scale of the return list
+pos,cost,varDict = pytowr.run(0,1,0.75,0,0.05, terrain,None,{}) # target x, target y, time scale of the return list
 print("cost",cost)
 def showtime(i):
     a = pos[i]
@@ -30,18 +30,20 @@ if __name__ == "__main__":
     # with open("tmpVardict.pkl","wb") as f:
     #     # pkl.dump(pos,f)
     #     pkl.dump(varDict,f)
-    import matplotlib.pyplot as plt
-    basex = [p[1][0] for p in pos]
-    basey = [p[1][1] for p in pos]
-    plt.plot(basex,basey)
-    for i in range(6):
-        eex = [p[3][i][0][0] for p in pos]
-        eey = [p[3][i][0][1] for p in pos]
-        plt.plot(eex,eey)
+    # import matplotlib.pyplot as plt
+    # basex = [p[1][0] for p in pos]
+    # basey = [p[1][1] for p in pos]
+    # plt.plot(basex,basey)
+    # for i in range(6):
+    #     eex = [p[3][i][0][0] for p in pos]
+    #     eey = [p[3][i][0][1] for p in pos]
+    #     plt.plot(eex,eey)
     
-    plt.show()
+    # plt.show()
     # for i in range(6):
     #     del(varDict["ee-motion_%d"%i])
     #     del(varDict["ee-force_%d"%i])
     # p,c,v =  pytowr.run(2.,0.,0.01, terrain,varDict)
     # print("new cost:",c)
+    i = len(pos)
+    showtime(i)

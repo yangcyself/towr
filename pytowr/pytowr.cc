@@ -361,9 +361,10 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     formulation.initial_ee_W_ = nominal_stance_B;
     double z_ground = 0.0;
     std::for_each(formulation.initial_ee_W_.begin(), formulation.initial_ee_W_.end(),
-                  [&](Eigen::Vector3d& p){ p.z() = z_ground; } // feet at 0 height
+                  [&](Eigen::Vector3d& p){ p.z() = z_ground;std::cout<<"eachleg: "<<p.x()<<','<<p.y()<<','<<p.z()<<std::endl;} // feet at 0 height
     );
     formulation.initial_base_.lin.at(kPos).z() = - nominal_stance_B.front().z() + z_ground;
+    std::cout<<"BodyHeight:"<<formulation.initial_base_.lin.at(kPos).z()<<std::endl;
   }else{
     PyObject *stancePos;
     double bodyHeight;
@@ -373,10 +374,12 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
     towr::KinematicModel::EEPos init_ee_W;
     Eigen::Matrix<double, n_ee,3 > ee_W_mat = numpy2eigen(stancePos,true);
     for(int i = 0;i<n_ee;i++){
-      init_ee_W.push_back(ee_W_mat.row(i) );
+      std::cout<<"eachleg: "<<ee_W_mat.row(i).x()<<','<<ee_W_mat.row(i).y()<<','<<ee_W_mat.row(i).z()<<std::endl;
+      init_ee_W.push_back(ee_W_mat.row(i));
     }
     formulation.initial_ee_W_ = init_ee_W;
     formulation.initial_base_.lin.at(kPos).z() = bodyHeight;
+    std::cout<<"BodyHeight:"<<formulation.initial_base_.lin.at(kPos).z()<<std::endl;
   }
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z+hz;
