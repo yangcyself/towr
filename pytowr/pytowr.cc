@@ -1,6 +1,7 @@
 #include "Python.h"
 #include "pytowr.h"
 #include "stdio.h"
+#include "math.h"
 
 
 PyObject* eigenwrapper(Eigen::Vector3d a)
@@ -173,14 +174,19 @@ public:
     PyObject *result;
     double height;
     /* Time to call the callback */
+    
     arglist = Py_BuildValue("(dd)", x,y);
     result = PyObject_CallObject(terrainCallback, arglist);
-    if (!PyArg_Parse(result, "d", &height)) {
-      std::cout<<"cannot parse the height returned from call back"<<std::endl;
-      Py_DECREF(arglist);
-      Py_DECREF(result);
-      return 0.0;
-    }
+    PyArg_Parse(result, "d", &height);
+    // std::cout<<"1:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
+    if(abs(height)<0.01)height=0.0;
+    // std::cout<<"2:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
+    // if (!PyArg_Parse(result, "d", &height)) {
+    //   std::cout<<"cannot parse the height returned from call back"<<std::endl;
+    //   Py_DECREF(arglist);
+    //   Py_DECREF(result);
+    //   return 0.0;
+    // }
     Py_DECREF(arglist);
     Py_DECREF(result);
     return height;
