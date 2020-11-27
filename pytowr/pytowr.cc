@@ -276,7 +276,7 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
   // terrain
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
-  double robot_z = 0.45;
+  double robot_z = 0.6;
   // set the initial position
     //set the initial ee position
   if(posture == Py_None){ // None is passed, use the default value
@@ -359,7 +359,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   
-  double robot_z = 0.45;
+  double robot_z = 0.6;
 
   //set the initial ee position
   if(posture == Py_None){ // None is passed, use the default value

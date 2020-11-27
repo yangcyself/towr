@@ -82,7 +82,7 @@ private:
   double step_width_x     = 2;
   double step_start_y = 0;
   double step_width_y     = 1;
-  double height_     = -100; // [m]
+  double height_     = 1; // [m]
 
 };
 

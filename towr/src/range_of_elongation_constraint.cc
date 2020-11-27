@@ -94,8 +94,8 @@ RangeOfElongationConstraint::UpdateBoundsAtInstance (double t, int k, VecBound& 
 {
   for (int dim=0; dim<k3D; ++dim) {
     ifopt::Bounds b;
-    b.upper_ = max_lengths;
-    b.lower_ = min_lengths;
+    b.upper_ = max_lengths*max_lengths;
+    b.lower_ = min_lengths*min_lengths;
     bounds.at(GetRow(k,dim)) = b;
   }
 }

@@ -47,7 +47,7 @@ public:
     const double x_nominal_2 = 0;
     const double y_nominal_1 = 0.304;
     const double y_nominal_2 = 0.609;
-    const double z_nominal = -0.45;
+    const double z_nominal = -0.6;
     const double x_position_1 = 0.131;
     const double x_position_2 = 0.274;
     const double x_position_3 = 0.182;
@@ -88,10 +88,10 @@ public:
 
     root_positions.at(RC) << -x_position_1, -y_position_1     ,0,
                               -x_position_2, -y_position_2 ,z_position_0,
-                              -x_position_3, y_position_3  ,z_position_0;
+                              -x_position_3, -y_position_3  ,z_position_0;
 
-    min_length = 0.4; // note here is the square of the length
-    max_length = 0.9;
+    min_length = 0.65; // note here is the square of the length
+    max_length = 0.85;
     max_dev_from_nominal_ << 0.2, 0.2, 0.2;
   }
 };
