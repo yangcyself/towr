@@ -179,7 +179,7 @@ public:
     result = PyObject_CallObject(terrainCallback, arglist);
     PyArg_Parse(result, "d", &height);
     // std::cout<<"1:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
-    if(abs(height)<0.01)height=0.0;
+    if(fabs(height)<0.005)height=0.0;
     // std::cout<<"2:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
     // if (!PyArg_Parse(result, "d", &height)) {
     //   std::cout<<"cannot parse the height returned from call back"<<std::endl;

@@ -22,7 +22,7 @@ terrain = lambda x,y: 0.2 if (0.4<x<0.8) else 0.0
 #     else:
 #         return 0
 
-pos,math.cost,varDict = pytowr.run(0,0.8,0,0,0.05, terrain,None,{}) # target x, target y, time scale of the return list
+pos,math.cost,varDict = pytowr.run(0,0.5,0,0,0.05, terrain,None,{}) # target x, target y, time scale of the return list
 
 print("math.cost",math.cost)
 def showtime(i):
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     basex = [p[1][0] for p in pos]
     basey = [p[1][1] for p in pos]
     basez = [p[1][2] for p in pos]
-    plt.plot(basex,basey)
+    # plt.plot(basex,basey)
 
     basea = [p[2][0] for p in pos]
     baseb = [p[2][1] for p in pos]
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # plt.plot(basea)
     # plt.plot(baseb)
     # plt.plot(basec)
-    plt.show()
+    # plt.show()
     
     # plt.plot(basex,basey)
     eex = list()
@@ -63,8 +63,8 @@ if __name__ == "__main__":
         eey.append([p[3][i][0][1] for p in pos])
         eez.append([p[3][i][0][2] for p in pos])
         
-        # plt.plot(eex,eey)
-    print(eex)
+    plt.plot(eez[0])
+    plt.show()
 
     x_nominal_1 = 0.528
     x_nominal_2 = 0
