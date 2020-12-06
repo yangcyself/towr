@@ -82,7 +82,7 @@ RangeOfElongationConstraint::EERootBase(double t) const
 void
 RangeOfElongationConstraint::UpdateConstraintAtInstance (double t, int k, VectorXd& g) const
 {
-  double gamma = 0.8;
+  double gamma = 0.7;
   if(t>=0.05){
     Matrix3d root_to_ee_B = EERootBase(t-0.05);
     Matrix3d root_to_ee_B_1 = EERootBase(t);
@@ -106,7 +106,7 @@ RangeOfElongationConstraint::UpdateConstraintAtInstance (double t, int k, Vector
 void
 RangeOfElongationConstraint::UpdateBoundsAtInstance (double t, int k, VecBound& bounds) const
 {
-  double gamma = 0.8;
+  double gamma = 0.7;
   for (int dim=0; dim<k3D; ++dim) {
     ifopt::Bounds b;
     b.upper_ = gamma*max_lengths*max_lengths;
@@ -120,7 +120,7 @@ RangeOfElongationConstraint::UpdateJacobianAtInstance (double t, int k,
                                                    std::string var_set,
                                                    Jacobian& jac) const
 {
-  double gamma = 0.8;
+  double gamma = 0.7;
   if(t>=0.05){
     EulerConverter::MatrixSXd b_R_w = base_angular_.GetRotationMatrixBaseToWorld(t-0.05).transpose();
     EulerConverter::MatrixSXd b_R_w_1 = base_angular_.GetRotationMatrixBaseToWorld(t).transpose();

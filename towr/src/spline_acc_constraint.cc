@@ -55,7 +55,7 @@ SplineAccConstraint::GetValues () const
     VectorXd acc_prev = spline_->GetPoint(p_prev, T_.at(p_prev)).a();
 
     int p_next = j+1;
-    VectorXd acc_next = spline_->GetPoint(p_next, 0.0).a();
+    VectorXd acc_next = spline_->GetPoint(p_next, T_.at(p_next)).a();
 
     g.segment(j*n_dim_, n_dim_) = acc_prev - acc_next;
   }
@@ -72,7 +72,7 @@ SplineAccConstraint::FillJacobianBlock (std::string var_set, Jacobian& jac) cons
       Jacobian acc_prev = spline_->GetJacobianWrtNodes(p_prev, T_.at(p_prev), kAcc);
 
       int p_next = j+1;
-      Jacobian acc_next = spline_->GetJacobianWrtNodes(p_next, 0.0, kAcc);
+      Jacobian acc_next = spline_->GetJacobianWrtNodes(p_next, T_.at(p_next), kAcc);
 
       jac.middleRows(j*n_dim_, n_dim_) = acc_prev - acc_next;
     }
@@ -82,7 +82,7 @@ SplineAccConstraint::FillJacobianBlock (std::string var_set, Jacobian& jac) cons
 SplineAccConstraint::VecBound
 SplineAccConstraint::GetBounds () const
 {
-  return VecBound(GetRows(), ifopt::BoundZero);
+  return VecBound(GetRows(), ifopt::Bounds(-0.01, 0.01));
 }
 
 } /* namespace xpp */

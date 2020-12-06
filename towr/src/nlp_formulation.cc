@@ -105,7 +105,9 @@ NlpFormulation::MakeBaseVariables () const
 
   double x = final_base_.lin.p().x();
   double y = final_base_.lin.p().y();
-  double z = terrain_->GetHeight(x,y) - model_.kinematic_model_->GetNominalStanceInBase().front().z();
+  // double z = terrain_->GetHeight(x,y) - model_.kinematic_model_->GetNominalStanceInBase().front().z();
+  double z = final_base_.lin.p().z();
+  std::cout<<z<<std::endl;
   Vector3d final_pos(x, y, z);
 
   spline_lin->SetByLinearInterpolation(initial_base_.lin.p(), final_pos, params_.GetTotalTime());

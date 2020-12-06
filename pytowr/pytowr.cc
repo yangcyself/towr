@@ -128,11 +128,44 @@ towr::Parameters GetTowrParameters(int n_ee, int gait_choice=0)
   Parameters towrparams(true);
 #endif
 
+auto &c = towrparams.constraints_;
+
 #ifndef DYNAMIC_CONSTRAINT
-  auto &c = towrparams.constraints_;
+  std::cout<<1<<std::endl;
   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Dynamic), c.end()); //delete the Dynamic constraints 
   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Force), c.end()); //delete the Dynamic constraints 
 #endif
+
+// #ifndef ENDEFFECTORROM_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::EndeffectorRom), c.end()); //delete the Dynamic constraints 
+// #endif
+
+// #ifndef CENTER_OF_BODY_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::BodyCenter), c.end()); //delete the Dynamic constraints 
+// #endif
+
+// #ifndef TERRAIN_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Terrain), c.end()); //delete the Dynamic constraints 
+// #endif
+
+// #ifndef BASEROM_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::BaseRom), c.end()); //delete the Dynamic constraints 
+// #endif
+
+// #ifndef SWING_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::Swing), c.end()); //delete the Dynamic constraints 
+// #endif
+
+// #ifndef BASEACC_CONSTRAINT
+//   std::cout<<1<<std::endl;
+//   c.erase(std::remove(c.begin(), c.end(), towr::Parameters::BaseAcc), c.end()); //delete the Dynamic constraints 
+// #endif
+
 
   /**
    * Set the dt can be important! if a obstacle is too small, and dt is too large
@@ -179,7 +212,7 @@ public:
     result = PyObject_CallObject(terrainCallback, arglist);
     PyArg_Parse(result, "d", &height);
     // std::cout<<"1:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
-    if(fabs(height)<0.005)height=0.0;
+    // if(fabs(height)<0.001)height=0.0;
     // std::cout<<"2:x,y,h:"<<x<<','<<y<<','<<height<<std::endl;
     // if (!PyArg_Parse(result, "d", &height)) {
     //   std::cout<<"cannot parse the height returned from call back"<<std::endl;
@@ -276,7 +309,7 @@ static PyObject *py_initValues(PyObject *self, PyObject *args)
   // terrain
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
-  double robot_z = 0.6;
+  double robot_z = 0.;
   // set the initial position
     //set the initial ee position
   if(posture == Py_None){ // None is passed, use the default value
@@ -341,6 +374,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
    *      None if the norminal_stance(defined in the robot model) is to be used
    *  init value dict {variable_name(pystring) : value(pylist)}
    */
+
   int gait_choice;
   double a, b, hz, timescale;
   PyObject *func;
@@ -359,7 +393,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   formulation.terrain_ = std::make_shared<pyterrain>(func);
   formulation.model_ = RobotModel(RobotModel::Hexpod);
   
-  double robot_z = 0.6;
+  double robot_z = 0.5;
 
   //set the initial ee position
   if(posture == Py_None){ // None is passed, use the default value
@@ -389,6 +423,7 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   }
   // // define the desired goal state
   formulation.final_base_.lin.at(towr::kPos) << a, b, robot_z+hz;
+  std::cout<<robot_z+hz<<std::endl;
 
   formulation.params_ = GetTowrParameters(n_ee,gait_choice);
 
@@ -443,8 +478,8 @@ static PyObject *py_run(PyObject *self, PyObject *args) {
   solver->SetOption("jacobian_approximation", "exact"); // "finite difference-values"
   //solver->SetOption("linear_solver", "mumps"); //  alot faster,
 
-  solver->SetOption("max_cpu_time", 12.0);
-  solver->SetOption("max_iter", 1200); // according to the towr_ros_app.cc
+  solver->SetOption("max_cpu_time", 70.0);
+  solver->SetOption("max_iter", 20000); // according to the towr_ros_app.cc
   solver->Solve(nlp);
 
   using namespace std;

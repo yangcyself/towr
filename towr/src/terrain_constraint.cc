@@ -63,7 +63,7 @@ TerrainConstraint::GetValues () const
   int row = 0;
   for (int id : node_ids_) {
     Vector3d p = nodes.at(id).p();
-    g(row++) = p.z();
+    g(row++) = p.z() - terrain_->GetHeight(p.x(), p.y());
   }
 
   return g;
@@ -73,15 +73,15 @@ TerrainConstraint::VecBound
 TerrainConstraint::GetBounds () const
 {
   VecBound bounds(GetRows());
-  double max_distance_above_terrain = 1e10; // [m]
-  auto nodes = ee_motion_->GetNodes();
+  double max_distance_above_terrain = 0.5; // [m]
+
   int row = 0;
   for (int id : node_ids_) {
-    Vector3d p = nodes.at(id).p();
     if (ee_motion_->IsConstantNode(id))
-      bounds.at(row) = ifopt::Bounds(terrain_->GetHeight(p.x(), p.y()),terrain_->GetHeight(p.x(), p.y()));
+      bounds.at(row) = ifopt::Bounds(-0.001, 0.001);
     else
-      bounds.at(row) = ifopt::Bounds(terrain_->GetHeight(p.x(), p.y())+0.03, max_distance_above_terrain);
+      bounds.at(row) = ifopt::Bounds(0.05, max_distance_above_terrain);
+      // bounds.at(row) = ifopt::Bounds(0.05, max_distance_above_terrain);
     row++;
   }
 

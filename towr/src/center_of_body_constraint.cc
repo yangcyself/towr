@@ -187,13 +187,13 @@ CenterOfBodyConstraint::GetBounds () const
   int on_the_ground_feets[10]{0};
   int ground_foot_idx = 0;
   for(int id : node_ids_){
-    if(abs(g(id))<0.02)on_the_ground_feets[ground_foot_idx++] = id;
+    if(fabs(g(id))<0.001)on_the_ground_feets[ground_foot_idx++] = id;
   }
 
   if(CenterOfBodyConstraint::check_fall(cx,cy,ground_foot_idx,on_the_ground_feets)<=0){
     int row = 0;
     for (int id : node_ids_) {
-      bounds.at(row) = ifopt::BoundZero;
+      bounds.at(row) = ifopt::Bounds(-0.001, 0.001);
       row++;
     }
   }

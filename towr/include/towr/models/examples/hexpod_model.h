@@ -47,7 +47,7 @@ public:
     const double x_nominal_2 = 0;
     const double y_nominal_1 = 0.304;
     const double y_nominal_2 = 0.609;
-    const double z_nominal = -0.6;
+    const double z_nominal = -0.5;
     const double x_position_1 = 0.131;
     const double x_position_2 = 0.274;
     const double x_position_3 = 0.182;

@@ -66,7 +66,7 @@ HexapedGaitGenerator::SetCombo (Combos combo)
 {
   std::cout<<"combo "<<combo<<std::endl;
   switch (combo) {
-    case C0: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Stand}); break;
+    case C0: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Walk1, Walk1, Walk1, Walk1, Stand}); break;
     case C1: SetGaits({Stand, Walk2, Walk2, Walk2, Walk2E, Stand}); break;
     case C2: SetGaits({Stand, Walk1, Walk1, Walk1, Walk1, Walk1, Walk1, Stand}); break;
     case C3: SetGaits({Stand, Walk2, Walk2, Walk2, Walk2, Walk2, Walk2E, Stand}); break;
